@@ -139,6 +139,7 @@ svg text{font-family:var(--body)}
       <button id="v-grid" aria-pressed="false">Grid</button>
     </div>
     <button class="btn" id="lens" aria-pressed="true">Lens on</button>
+    <button class="btn" id="tiers">Tiers 1–3</button>
     <button class="btn" id="labels" aria-pressed="false">Labels: all</button>
     <button class="btn" id="fit">Fit</button>
     <button class="btn" id="zout" aria-label="Zoom out">−</button>
@@ -173,7 +174,8 @@ const trunc=(s,n)=>{s=s||'';return s.length>n?s.slice(0,n-1)+'…':s};
 
 function sample(){return{
   example:true,
-  books:['The Richter Scale','Mar/Herida','Chaos'],
+  books:['The Richter Scale','The Two That Got Away','Mar/Herida','Chaos'],
+  bookLabels:['Book 1','Book 1.5','Book 2','Book 3'],
   lanes:[
     {id:'lucas',name:'Lucas',color:'#3f8fbf',type:'character'},
     {id:'bence',name:'Bençe',color:'#d0703a',type:'character'},
@@ -183,12 +185,13 @@ function sample(){return{
     {id:'maxwell',name:'Maxwell',color:'#7b6fd6',type:'character'},
     {id:'simon',name:'Simon',color:'#8a8f99',type:'carrier'}],
   knots:[
-    {id:'k_ceo',title:'Saul grabs for CEO',size:'major',x:.28,y:78,note:'Also has to threaten André and Maxwell so they are more than funny uncles.'},
-    {id:'k_crates',title:'Suspiciously empty crates',size:'minor',x:.38,y:150,note:''},
-    {id:'k_fraud',title:'Lucas uncovers the sweatshops',size:'major',x:.56,y:96,note:'Elias waved the audit through. Kicks off the second half.'},
-    {id:'k_death',title:'Saul returns, only to die',size:'major',x:2.4,y:78,note:'Means more to Bençe than he will ever admit.'},
-    {id:'k_max',title:'Maxwell confronts Bençe',size:'major',x:2.62,y:150,note:'Offers to be the father Bençe never had.'},
-    {id:'k_enough',title:'"Never enough" comes undone',size:'major',unties:true,x:2.88,y:78,note:'Unties rather than happens: the standard was impossible all along.'}],
+    {id:'k_saul',title:'Saul against the family',tier:1,x:.04,end:.95,y:62,note:'Book 1 throughline: the suit venture merges with Family Richter, Saul grabs for CEO.'},
+    {id:'k_ceo',title:'Saul grabs for CEO',tier:2,x:.28,y:110,note:'Also has to threaten André and Maxwell so they are more than funny uncles.'},
+    {id:'k_crates',title:'Suspiciously empty crates',tier:3,x:.38,y:178,note:''},
+    {id:'k_fraud',title:'Lucas uncovers the sweatshops',tier:2,x:.56,y:124,note:'Elias waved the audit through. Kicks off the second half.'},
+    {id:'k_death',title:'Saul returns, only to die',tier:2,x:3.4,y:110,note:'Means more to Bençe than he will ever admit.'},
+    {id:'k_max',title:'Maxwell confronts Bençe',tier:2,x:3.62,y:178,note:'Offers to be the father Bençe never had.'},
+    {id:'k_enough',title:'"Never enough" comes undone',tier:2,unties:true,x:3.88,y:110,note:'Unties rather than happens: the standard was impossible all along.'}],
   pins:[
     {id:'p1',lane:'lucas',x:.12,title:'Dragged in as the numbers guy',change:'worse',weight:2},
     {id:'p2',lane:'lucas',x:.4,title:'Sees the empty crates. Tells no one.',stage:'keeps it',change:'worse',weight:2},
@@ -198,15 +201,15 @@ function sample(){return{
     {id:'p6',lane:'simon',x:.44,title:'Learns about the crates',change:'shift',weight:1},
     {id:'p7',lane:'jon',x:.5,title:'Simon tells him about the crates',stage:'finds out',change:'worse',weight:2},
     {id:'p8',lane:'jon',x:.58,title:'"I thought he was ready."',change:'worse',weight:3},
-    {id:'p10',lane:'bence',x:2.44,title:"Acts like he doesn't care",change:'same',weight:2},
-    {id:'p11',lane:'lucas',x:2.47,title:'Senses something is off',stage:'senses',change:'shift',weight:1},
-    {id:'p12',lane:'lucas',x:2.55,title:'Tell him or not?',stage:'bargains',change:'worse',weight:2},
-    {id:'p13',lane:'maxwell',x:2.62,title:'Offers to be his father',change:'grow',weight:3},
-    {id:'p14',lane:'bence',x:2.65,title:'The grief breaks through',change:'grow',weight:3},
-    {id:'p15',lane:'lucas',x:2.68,title:'Beaten to it by Maxwell?',change:'shift',weight:1,note:'Open question: does this feel like not-enough, in the one place he should be enough?'},
-    {id:'p16',lane:'lucas',x:2.9,title:'Enough: for Bençe, Jon, the company',change:'grow',weight:3}],
+    {id:'p10',lane:'bence',x:3.44,title:"Acts like he doesn't care",change:'same',weight:2},
+    {id:'p11',lane:'lucas',x:3.47,title:'Senses something is off',stage:'senses',change:'shift',weight:1},
+    {id:'p12',lane:'lucas',x:3.55,title:'Tell him or not?',stage:'bargains',change:'worse',weight:2},
+    {id:'p13',lane:'maxwell',x:3.62,title:'Offers to be his father',change:'grow',weight:3},
+    {id:'p14',lane:'bence',x:3.65,title:'The grief breaks through',change:'grow',weight:3},
+    {id:'p15',lane:'lucas',x:3.68,title:'Beaten to it by Maxwell?',change:'shift',weight:1,note:'Open question: does this feel like not-enough, in the one place he should be enough?'},
+    {id:'p16',lane:'lucas',x:3.9,title:'Enough: for Bençe, Jon, the company',change:'grow',weight:3}],
   strings:[
-    ['k_ceo','p4'],['k_ceo','p5'],['k_crates','p2'],['k_crates','p6'],['p6','p7'],['p7','p8'],
+    ['k_saul','k_ceo'],['k_saul','k_crates'],['k_ceo','p4'],['k_ceo','p5'],['k_crates','p2'],['k_crates','p6'],['p6','p7'],['p7','p8'],
     ['p2','p3'],['p8','p3'],['p2','k_fraud'],['k_death','p10'],['p10','p11','secondhand, through Bençe'],
     ['p11','p12'],['k_death','k_max'],['k_max','p13'],['k_max','p14'],['k_max','p15'],['p12','p15'],['k_enough','p16']
   ].map(([from,to,label])=>({id:uid('s'),from,to,label:label||''})),
@@ -216,25 +219,38 @@ function sample(){return{
 let state=null;
 try{state=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!state||!Array.isArray(state.lanes))state=sample();
+function normalize(s){
+  // v1/v2 boards had three books and major/minor knots. Insert Book 1.5 and move tiers over.
+  if(!s.bookLabels){
+    if(s.books.length===3){s.books.splice(1,0,'The Two That Got Away');s.knots.forEach(k=>{if(k.x>=1)k.x+=1});s.pins.forEach(p=>{if(p.x>=1)p.x+=1})}
+    s.bookLabels=s.books.map((b,i)=>s.books.length===4?['Book 1','Book 1.5','Book 2','Book 3'][i]:'Book '+(i+1));
+  }
+  s.knots.forEach(k=>{if(!k.tier)k.tier=k.size==='minor'?3:2;delete k.size;if(k.tier===1&&k.end==null)k.end=Math.min(s.books.length,k.x+.5)});
+  s.silenced=s.silenced||[];
+  return s;
+}
+state=normalize(state);
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
 
 let sel=null, mode='move', zoom=1, lensOn=true, view='board', tab='insp', sideOpen=false;
-let focusLabels=window.innerWidth<=1300, lastPointer='mouse';
+let focusLabels=window.innerWidth<=1300, lastPointer='mouse', maxTier=3;
 document.addEventListener('pointerdown',e=>{lastPointer=e.pointerType||'mouse'},true);
 
 /* geometry */
-const PAD=40,HEAD=36,KB0=46,KB1=196,LY=214,LH=78;
+const PAD=40,HEAD=36,KB0=46,KB1=256,LY=276,LH=78,RIB=60;
+const NB=()=>state.books.length;
 const bw=()=>480*zoom;
 const X=t=>PAD+t*bw();
-const T=x=>clamp((x-PAD)/bw(),0,3);
+const T=x=>clamp((x-PAD)/bw(),0,NB());
+const shown=k=>k.tier<=maxTier;
 const laneIdx=id=>state.lanes.findIndex(l=>l.id===id);
 const laneY=i=>LY+i*LH+LH/2;
 const H=()=>LY+state.lanes.length*LH+24;
-const W=()=>PAD*2+3*bw();
+const W=()=>PAD*2+NB()*bw();
 const knot=id=>state.knots.find(k=>k.id===id);
 const pin=id=>state.pins.find(p=>p.id===id);
 const lane=id=>state.lanes.find(l=>l.id===id);
-const radius=id=>{const k=knot(id);if(k)return k.size==='major'?17:10;const p=pin(id);return p?5+(p.weight||2)*1.6:6};
+const radius=id=>{const k=knot(id);if(k)return k.tier===1?11:k.tier===2?17:10;const p=pin(id);return p?5+(p.weight||2)*1.6:6};
 function pos(id){const k=knot(id);if(k)return{x:X(k.x),y:k.y};const p=pin(id);if(p)return{x:X(p.x),y:laneY(laneIdx(p.lane))};return null}
 function nodeName(id){const k=knot(id);if(k)return k.title||'Untitled knot';const p=pin(id);if(p)return `${lane(p.lane)?.name||'?'}: ${p.title||'untitled'}`;return '?'}
 
@@ -264,22 +280,22 @@ function flags(){
   for(const l of state.lanes){
     if(l.type!=='character')continue;
     const ps=state.pins.filter(p=>p.lane===l.id).sort((a,b)=>a.x-b.x);
-    if(!ps.length){if(!sil.has('empty:'+l.id))out.push({key:'empty:'+l.id,lane:l.id,kind:'empty',text:`${l.name} has no pins at all. Is that a gap you forgot, or a silence that means something?`,x0:0,x1:3});continue}
+    if(!ps.length){if(!sil.has('empty:'+l.id))out.push({key:'empty:'+l.id,lane:l.id,kind:'empty',text:`${l.name} has no pins at all. Is that a gap you forgot, or a silence that means something?`,x0:0,x1:NB()});continue}
     if(ps[0].x>GAP&&!sil.has('gapstart:'+l.id))out.push({key:'gapstart:'+l.id,lane:l.id,kind:'gap',text:`${l.name} only shows up at ${where(ps[0].x)}.`,x0:0,x1:ps[0].x});
     for(let i=0;i<ps.length-1;i++){const a=ps[i],b=ps[i+1];if(b.x-a.x>GAP&&!a.quiet)out.push({key:'gap:'+a.id,pin:a.id,lane:l.id,kind:'gap',text:`${l.name}'s thread goes quiet from ${where(a.x)} to ${where(b.x)}.`,x0:a.x,x1:b.x})}
     const last=ps[ps.length-1];
-    if(3-last.x>GAP&&!sil.has('gapend:'+l.id))out.push({key:'gapend:'+l.id,lane:l.id,kind:'gap',text:`${l.name} has nothing after ${where(last.x)}.`,x0:last.x,x1:3});
+    if(NB()-last.x>GAP&&!sil.has('gapend:'+l.id))out.push({key:'gapend:'+l.id,lane:l.id,kind:'gap',text:`${l.name} has nothing after ${where(last.x)}.`,x0:last.x,x1:NB()});
     let run=0;
     for(let i=0;i<ps.length;i++){run=ps[i].change==='same'?run+1:0;if(run===3){const s=ps[i-2];if(!s.quiet)out.push({key:'same:'+s.id,pin:s.id,lane:l.id,kind:'same',text:`${l.name} passes through three moments in a row and comes out unchanged.`,x0:s.x,x1:ps[i].x})}}
   }
   for(const k of state.knots){
-    if(k.size!=='major')continue;const r=lanesReached(k.id);
+    if(k.tier>2)continue;const r=lanesReached(k.id);
     for(const l of state.lanes){if(l.type!=='character'||r.has(l.id))continue;const key='untouched:'+k.id+':'+l.id;if(sil.has(key))continue;
       out.push({key,lane:l.id,knot:k.id,kind:'untouched',text:`"${k.title}" never reaches ${l.name}.`})}
   }
   return out;
 }
-function where(t){const b=Math.min(2,Math.floor(t));return `Book ${b+1}, ${Math.round((t-b)*100)}%`}
+function where(t){const b=clamp(Math.floor(t),0,NB()-1);return `${state.bookLabels[b]}, ${Math.round((t-b)*100)}%`}
 function silence(f){if(f.pin){const p=pin(f.pin);if(p)p.quiet=true}else{state.silenced=state.silenced||[];state.silenced.push(f.key)}commit()}
 
 /* ---------- board ---------- */
@@ -290,10 +306,10 @@ function renderBoard(){
   const dim=id=>L&&!L.nodes.has(id)?' opacity=".14"':'';
   let s=`<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--flag)" stroke-width="2" opacity=".35"/></pattern></defs>`;
   // books
-  for(let b=0;b<3;b++){
+  for(let b=0;b<NB();b++){
     s+=`<rect x="${X(b)}" y="0" width="${bw()}" height="${h}" fill="${b%2?'var(--band)':'var(--board)'}"/>`;
-    s+=`<text x="${X(b)+12}" y="23" font-size="11" letter-spacing="1.6" fill="var(--muted)">BOOK ${b+1}</text>`;
-    s+=`<text class="k-label" x="${X(b)+62}" y="23" font-size="14" font-style="italic" fill="var(--ink)">${esc(state.books[b])}</text>`;
+    s+=`<text x="${X(b)+12}" y="23" font-size="11" letter-spacing="1.6" fill="var(--muted)">${esc((state.bookLabels[b]||'').toUpperCase())}</text>`;
+    s+=`<text class="k-label" x="${X(b)+80}" y="23" font-size="14" font-style="italic" fill="var(--ink)">${esc(state.books[b])}</text>`;
     for(let q=1;q<4;q++)s+=`<line x1="${X(b+q/4)}" y1="${HEAD-6}" x2="${X(b+q/4)}" y2="${h}" stroke="var(--rule)" stroke-dasharray="2 6"/>`;
   }
   s+=`<line x1="0" y1="${HEAD}" x2="${w}" y2="${HEAD}" stroke="var(--rule)"/>`;
@@ -301,13 +317,14 @@ function renderBoard(){
   // lanes
   state.lanes.forEach((l,i)=>{
     const y=laneY(i),on=!L||!L.lanes||L.lanes.has(l.id)||state.pins.some(p=>p.lane===l.id&&L.nodes.has(p.id));
-    s+=`<line x1="${X(0)}" y1="${y}" x2="${X(3)}" y2="${y}" stroke="${l.color}" stroke-width="${sel&&sel.type==='lane'&&sel.id===l.id?4:2.2}" stroke-linecap="round" ${l.type==='carrier'?'stroke-dasharray="1 7"':''} opacity="${L&&!on?.12:.55}"/>`;
+    s+=`<line x1="${X(0)}" y1="${y}" x2="${X(NB())}" y2="${y}" stroke="${l.color}" stroke-width="${sel&&sel.type==='lane'&&sel.id===l.id?4:2.2}" stroke-linecap="round" ${l.type==='carrier'?'stroke-dasharray="1 7"':''} opacity="${L&&!on?.12:.55}"/>`;
     s+=`<line x1="0" y1="${LY+(i+1)*LH}" x2="${w}" y2="${LY+(i+1)*LH}" stroke="var(--rule)" opacity=".6"/>`;
   });
   // gap flags
   for(const f of fl){if(f.kind==='untouched')continue;const i=laneIdx(f.lane);s+=`<rect x="${X(f.x0)+6}" y="${laneY(i)-14}" width="${Math.max(0,X(f.x1)-X(f.x0)-12)}" height="28" rx="14" fill="url(#hatch)"${L?' opacity=".3"':''}/>`}
   // strings
   for(const st of state.strings){
+    const kf=knot(st.from),kt=knot(st.to);if((kf&&!shown(kf))||(kt&&!shown(kt)))continue;
     const a=pos(st.from),b=pos(st.to);if(!a||!b)continue;
     const fromPin=pin(st.from),col=fromPin?lane(fromPin.lane)?.color:'var(--ink)';
     const tp=pin(st.to),wd=tp?[0,1.3,2.1,3.2][tp.weight||2]:1.8;
@@ -339,14 +356,30 @@ function renderBoard(){
   });
   // knots
   for(const k of state.knots){
-    const x=X(k.x),y=k.y,maj=k.size==='major',r=maj?17:10,isSel=sel&&sel.type==='knot'&&sel.id===k.id,col=maj?'var(--gold)':'var(--accent)';
-    const miss=maj?state.lanes.filter(l=>l.type==='character').length-lanesReached(k.id).size:0;
+    if(!shown(k))continue;
+    const isSel=sel&&sel.type==='knot'&&sel.id===k.id;
+    const nChar=state.lanes.filter(l=>l.type==='character').length;
+    const reached=k.tier<=2?[...lanesReached(k.id)].filter(id=>lane(id)?.type==='character').length:0;
+    const miss=k.tier<=2?nChar-reached:0;
+    if(k.tier===1){
+      const x0=X(k.x),x1=Math.max(x0+40,X(k.end)),y=k.y;
+      s+=`<g${dim(k.id)}>`;
+      s+=`<rect x="${x0}" y="${y-12}" width="${x1-x0}" height="24" rx="12" fill="color-mix(in srgb,var(--gold) 18%,var(--board))" stroke="var(--gold)" stroke-width="${isSel?3:1.6}" ${k.unties?'stroke-dasharray="6 4"':''}/>`;
+      s+=`<text class="k-label" x="${x0+14}" y="${y+5}" font-size="13" font-weight="700" fill="var(--ink)">${esc(trunc(k.title||'Untitled conflict',Math.max(8,Math.floor((x1-x0-30)/7.2))))}</text>`;
+      if(miss>0)s+=`<text x="${x1+8}" y="${y+4}" font-size="10.5" font-weight="700" fill="var(--flag)">${miss} untouched</text>`;
+      s+=`<rect x="${x0}" y="${y-14}" width="${Math.max(0,x1-x0-18)}" height="28" fill="transparent" data-id="${k.id}" data-t="knot"/>`;
+      s+=`<g data-id="${k.id}" data-t="knotend"><rect x="${x1-20}" y="${y-16}" width="30" height="32" fill="transparent"/><line x1="${x1-5}" y1="${y-6}" x2="${x1-5}" y2="${y+6}" stroke="var(--gold)" stroke-width="2"/></g></g>`;
+      continue;
+    }
+    const x=X(k.x),y=k.y,maj=k.tier===2,r=maj?17:10,col=maj?'var(--gold)':'var(--accent)';
     s+=`<g${dim(k.id)}>`;
     if(isSel)s+=`<circle cx="${x}" cy="${y}" r="${r+7}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
     s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--board)" stroke="${col}" stroke-width="${maj?3:2.2}" ${k.unties?'stroke-dasharray="5 4"':''}/>`;
     s+=`<circle cx="${x-r*.28}" cy="${y}" r="${r*.42}" fill="none" stroke="${col}" stroke-width="1.6" ${k.unties?'stroke-dasharray="3 3"':''}/><circle cx="${x+r*.28}" cy="${y}" r="${r*.42}" fill="none" stroke="${col}" stroke-width="1.6" ${k.unties?'stroke-dasharray="3 3"':''}/>`;
-    s+=`<text class="k-label" x="${x}" y="${y+r+16}" text-anchor="middle" font-size="${maj?13.5:12}" font-weight="${maj?700:400}" ${maj?'':'font-style="italic"'} fill="var(--ink)">${esc(trunc(k.title,isSel?60:28))}</text>`;
-    if(miss>0)s+=`<text x="${x+r+3}" y="${y-r+4}" font-size="10.5" font-weight="700" fill="var(--flag)">${miss} untouched</text>`;
+    const showK=!focusLabels||isSel||(L&&L.nodes.has(k.id));
+    if(showK)s+=`<text class="k-label" x="${x}" y="${y+r+14}" text-anchor="middle" font-size="${maj?13:12}" font-weight="${maj?700:400}" ${maj?'':'font-style="italic"'} fill="var(--ink)" stroke="var(--board)" stroke-width="3" paint-order="stroke">${esc(trunc(k.title,isSel?60:26))}</text>`;
+    if(miss>0&&showK)s+=`<text x="${x+r+3}" y="${y-r+4}" font-size="10.5" font-weight="700" fill="var(--flag)">${miss} untouched</text>`;
+    else if(miss>0)s+=`<circle cx="${x+r*.75}" cy="${y-r*.75}" r="4" fill="var(--flag)"/>`;
     s+=`<circle cx="${x}" cy="${y}" r="${r+6}" fill="transparent" data-id="${k.id}" data-t="knot"/></g>`;
   }
   // live string
@@ -354,7 +387,7 @@ function renderBoard(){
 
   // labels column
   const flagCount={};fl.forEach(f=>{flagCount[f.lane]=(flagCount[f.lane]||0)+1});
-  let labs=`<div class="lab knotlab" style="top:${KB0-10}px;height:${KB1-KB0+18}px">Knots</div>`;
+  let labs=`<div class="lab knotlab" style="top:${KB0-10}px;height:${KB1-KB0+18}px">Knots<br><span style="letter-spacing:0;text-transform:none">tier ${maxTier===3?'1–3':maxTier===2?'1–2':'1'}</span></div>`;
   state.lanes.forEach((l,i)=>{const n=state.pins.filter(p=>p.lane===l.id).length,fc=flagCount[l.id]||0;
     labs+=`<button class="lab" data-lane="${l.id}" aria-pressed="${sel&&sel.type==='lane'&&sel.id===l.id}" style="top:${LY+i*LH}px;height:${LH}px"><span class="nm"><span class="sw" style="background:${l.color}"></span>${esc(l.name)}</span><span class="meta">${l.type==='carrier'?'carrier · ':''}${n} pin${n===1?'':'s'}${fc?` · <b>${fc} flag${fc===1?'':'s'}</b>`:''}</span></button>`});
 
@@ -368,12 +401,12 @@ function renderBoard(){
 function renderGrid(){
   const fl=flags();$('#stallbtn').textContent=`Stall check (${fl.length})`;
   const ks=state.knots.slice().sort((a,b)=>a.x-b.x),chars=state.lanes;
-  let h=`<table class="grid"><thead><tr><th></th>${ks.map(k=>`<th><button class="pinref" data-sel="knot:${k.id}">${esc(k.title)}</button><span class="kmeta">${k.size==='major'?'major':'minor'}${k.unties?' · unties':''} · ${where(k.x)}</span></th>`).join('')}</tr></thead><tbody>`;
+  let h=`<table class="grid"><thead><tr><th></th>${ks.filter(shown).map(k=>`<th><button class="pinref" data-sel="knot:${k.id}">${esc(k.title)}</button><span class="kmeta">tier ${k.tier}${k.unties?' · unties':''} · ${where(k.x)}</span></th>`).join('')}</tr></thead><tbody>`;
   for(const l of chars){
     h+=`<tr><th><button class="pinref" data-sel="lane:${l.id}" style="color:${l.color}">${esc(l.name)}</button></th>`;
-    for(const k of ks){
+    for(const k of ks.filter(shown)){
       const r=reach([k.id],1),ps=state.pins.filter(p=>p.lane===l.id&&r.nodes.has(p.id)).sort((a,b)=>a.x-b.x);
-      const miss=!ps.length&&k.size==='major'&&l.type==='character';
+      const miss=!ps.length&&k.tier<=2&&l.type==='character';
       h+=`<td class="${miss?'miss':''}">${ps.length?ps.map(p=>`<button class="pinref" data-sel="pin:${p.id}">${{grow:'↑',worse:'↓',shift:'↝',same:'='}[p.change]||''} ${esc(p.title||'untitled')}${p.x-k.x>.15?` <span class="muted">(later)</span>`:''}</button>`).join(''):(miss?'untouched':'<span class="muted">·</span>')}</td>`;
     }
     h+='</tr>';
@@ -393,7 +426,8 @@ function bindBoard(){
     svg.setPointerCapture(e.pointerId);
     if(t){
       const id=t.dataset.id,ty=t.dataset.t;
-      if(ty!=='string'&&(e.pointerType==='pen'||mode==='string'))drag={type:'string',from:id,x:pt.x,y:pt.y,sx:pt.x,sy:pt.y,moved:false};
+      if(ty==='knotend')drag={type:'resize',id,ty:'knot',sx:pt.x,sy:pt.y,moved:false};
+      else if(ty!=='string'&&(e.pointerType==='pen'||mode==='string'))drag={type:'string',from:id,x:pt.x,y:pt.y,sx:pt.x,sy:pt.y,moved:false};
       else if(ty==='string')drag={type:'tap',id,ty,sx:pt.x,sy:pt.y,moved:false};
       else{const p=pos(id);drag={type:'move',id,ty,ox:pt.x-p.x,oy:pt.y-p.y,sx:pt.x,sy:pt.y,moved:false}}
     }else drag={type:'pan',cx:e.clientX,cy:e.clientY,sl:scroller.scrollLeft,st:scroller.scrollTop,sx:pt.x,sy:pt.y,moved:false};
@@ -404,10 +438,13 @@ function bindBoard(){
     if(drag.type==='pan'){scroller.scrollLeft=drag.sl-(e.clientX-drag.cx);scroller.scrollTop=drag.st-(e.clientY-drag.cy)}
     else if(drag.type==='move'){
       const nx=pt.x-drag.ox,ny=pt.y-drag.oy;
-      if(drag.ty==='knot'){const k=knot(drag.id);k.x=T(nx);k.y=clamp(ny,KB0+20,KB1-24)}
+      if(drag.ty==='knot'){const k=knot(drag.id);
+        if(k.tier===1){const len=k.end-k.x;k.x=clamp(T(nx),0,NB()-len);k.end=k.x+len;k.y=clamp(ny,KB0+14,KB1-14)}
+        else{k.x=T(nx);k.y=clamp(ny,KB0+20,KB1-24)}}
       else{const p=pin(drag.id);p.x=T(nx);const i=clamp(Math.floor((pt.y-LY)/LH),0,state.lanes.length-1);if(pt.y>LY)p.lane=state.lanes[i].id}
       renderBoard();
-    }else if(drag.type==='string'){drag.x=pt.x;drag.y=pt.y;renderBoard()}
+    }else if(drag.type==='resize'){const k=knot(drag.id);k.end=clamp(T(pt.x),k.x+.05,NB());renderBoard()}
+    else if(drag.type==='string'){drag.x=pt.x;drag.y=pt.y;renderBoard()}
   });
   const end=e=>{
     if(!drag)return;const d=drag;drag=null;const pt=svgPt(e);
@@ -419,12 +456,12 @@ function bindBoard(){
       }
       select({type:d.ty||(knot(d.from)?'knot':'pin'),id:d.id||d.from});return;
     }
-    if(d.type==='move'){commit();return}
+    if(d.type==='move'||d.type==='resize'){commit();return}
     if(d.type==='string'){
       const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-id]');
       let to=null;
       if(t&&t.dataset.t!=='string')to=t.dataset.id;
-      else if(pt.y>=KB0&&pt.y<=KB1){const k={id:uid('k'),title:'',size:'minor',x:T(pt.x),y:clamp(pt.y,KB0+20,KB1-24),note:''};state.knots.push(k);to=k.id}
+      else if(pt.y>=KB0&&pt.y<=KB1){const k={id:uid('k'),title:'',tier:3,x:T(pt.x),y:clamp(pt.y,KB0+20,KB1-24),note:''};state.knots.push(k);to=k.id}
       else if(pt.y>LY&&pt.y<LY+state.lanes.length*LH){const i=Math.floor((pt.y-LY)/LH),p={id:uid('p'),lane:state.lanes[i].id,x:T(pt.x),title:'',change:'shift',weight:2};state.pins.push(p);to=p.id}
       if(to&&to!==d.from&&!state.strings.some(s=>s.from===d.from&&s.to===to)){
         state.strings.push({id:uid('s'),from:d.from,to,label:''});
@@ -437,7 +474,7 @@ function bindBoard(){
   svg.addEventListener('pointercancel',()=>{drag=null;renderBoard()});
 }
 function addAt(pt){
-  if(pt.y>=KB0&&pt.y<=KB1){const k={id:uid('k'),title:'',size:'minor',x:T(pt.x),y:clamp(pt.y,KB0+20,KB1-24),note:''};state.knots.push(k);commit();select({type:'knot',id:k.id},true)}
+  if(pt.y>=KB0&&pt.y<=KB1){const k={id:uid('k'),title:'',tier:pt.y<RIB+16?1:3,x:T(pt.x),y:pt.y<RIB+16?RIB:clamp(pt.y,KB0+20,KB1-24),note:''};if(k.tier===1)k.end=Math.min(NB(),k.x+.5);state.knots.push(k);commit();select({type:'knot',id:k.id},true)}
   else if(pt.y>LY&&pt.y<LY+state.lanes.length*LH){const i=Math.floor((pt.y-LY)/LH),p={id:uid('p'),lane:state.lanes[i].id,x:T(pt.x),title:'',change:'shift',weight:2};state.pins.push(p);commit();select({type:'pin',id:p.id},true)}
 }
 
@@ -463,16 +500,19 @@ function renderSide(){
       <p><b>Finger moves</b> knots and pins and pans the board. Flip the toolbar to <kbd>String</kbd> if you're on a mouse.</p>
       <p><b>Double-tap</b> empty space to add a knot (top band) or a pin (on a thread).</p>
       <p><b>Tap a knot</b> to see everyone it reaches, even three books later. <b>Tap a name</b> on the left to follow just that thread.</p>
+      <p><b>Tiers:</b> gold ribbons along the top are tier 1, a book's whole conflict; drag the little bar at the end to stretch one. Big gold knots are tier 2 battles, small ones tier 3 details. The <kbd>Tiers</kbd> button hides the small stuff when the board gets crowded.</p>
       <p>Dashed strings travel <i>through a person</i>: secondhand impacts. Dashed knots <i>untie</i> instead of happening.</p>
       <p>Hatched stretches are where the stall check thinks someone has gone quiet. Tell it "on purpose" and it will shut up.</p></div>
-      ${state.example?`<div class="example">Loaded with what you told me about Saul, the crates, Simon, Maxwell and "never enough". Book 2 is deliberately empty, and Ari has nothing yet, so the stall check has something to complain about.</div>`:''}
+      ${state.example?`<div class="example">Loaded with what you told me about Saul, the crates, Simon, Maxwell and "never enough". Books 1.5 and 2 are deliberately empty, and Ari has nothing yet, so the stall check has something to complain about.</div>`:''}
       <div class="chips"><button class="btn" id="addlane">+ Character or carrier</button></div>`;
   }else if(sel.type==='knot'){
     const k=knot(sel.id);if(!k){sel=null;return renderSide()}
     const r=lanesReached(k.id);
     h=`<div class="eyebrow">Knot · ${where(k.x)}</div>
       <div class="field"><label for="f-title">Name</label><input type="text" id="f-title" value="${esc(k.title)}" placeholder="What happens?"></div>
-      <div class="field"><span class="lbl">Size</span>${seg('size',[['major','Major'],['minor','Minor']],k.size)}</div>
+      <div class="field"><span class="lbl">Tier</span>${seg('tier',[[1,'1 · Conflict'],[2,'2 · Battle'],[3,'3 · Detail']],k.tier)}</div>
+      ${k.tier===1?`<div class="field"><label for="f-end">Runs until · ${esc(where(k.end))}</label><input type="range" id="f-end" min="0" max="${NB()}" step="0.01" value="${k.end}"></div>`:''}
+      <div class="field"><label for="f-chapter">Where in the manuscript</label><input type="text" id="f-chapter" value="${esc(k.chapter)}" placeholder="Chapter, POV, scene"></div>
       <label class="check"><input type="checkbox" id="f-unties" ${k.unties?'checked':''}> Unties: dissolves over time instead of happening at once</label>
       <div class="field"><label for="f-note">Note</label><textarea id="f-note">${esc(k.note)}</textarea></div>
       <div class="field"><span class="lbl">Reaches</span><div class="chips">${state.lanes.map(l=>`<span class="chip ${r.has(l.id)?'':(l.type==='character'?'miss':'')}"><span class="sw" style="background:${l.color}"></span>${esc(l.name)}${r.has(l.id)?'':' · no string'}</span>`).join('')}</div></div>
@@ -483,6 +523,7 @@ function renderSide(){
     h=`<div class="eyebrow">Impact · ${where(p.x)}</div>
       <div class="field"><label for="f-lane">Character</label><select id="f-lane">${state.lanes.map(l=>`<option value="${l.id}" ${l.id===p.lane?'selected':''}>${esc(l.name)}</option>`).join('')}</select></div>
       <div class="field"><label for="f-title">What it does to them</label><input type="text" id="f-title" value="${esc(p.title)}" placeholder="e.g. Tells no one"></div>
+      <div class="field"><label for="f-chapter">Where in the manuscript</label><input type="text" id="f-chapter" value="${esc(p.chapter)}" placeholder="Chapter, POV, scene"></div>
       <div class="field"><label for="f-stage">Stage</label><input type="text" id="f-stage" value="${esc(p.stage)}" placeholder="senses · identifies · bargains · speaks"></div>
       <div class="field"><span class="lbl">Change</span>${seg('change',[['grow','↑ Grows'],['worse','↓ Worsens'],['shift','↝ Shifts'],['same','= Unchanged']],p.change)}</div>
       <div class="field"><span class="lbl">How hard it lands</span>${seg('weight',[[1,'Grazes'],[2,'Lands'],[3,'Floors']],p.weight||2)}</div>
@@ -514,16 +555,17 @@ function bindSide(){
   const obj=sel&&(sel.type==='knot'?knot(sel.id):sel.type==='pin'?pin(sel.id):sel.type==='lane'?lane(sel.id):state.strings.find(x=>x.id===sel.id));
   const bindIn=(id,key)=>{const el=pane.querySelector('#'+id);if(el&&obj)el.addEventListener('input',()=>{obj[key]=el.type==='checkbox'?el.checked:el.value;commit()})};
   bindIn('f-title','title');bindIn('f-note','note');bindIn('f-stage','stage');bindIn('f-name','name');bindIn('f-color','color');bindIn('f-label','label');
-  bindIn('f-unties','unties');bindIn('f-quiet','quiet');
-  // A finger tap on a field the Pencil last wrote into: drop focus and take it again inside the
-  // finger's own tap, so iPadOS brings up the on-screen keyboard instead of the Scribble palette.
+  bindIn('f-unties','unties');bindIn('f-quiet','quiet');bindIn('f-chapter','chapter');
+  const fe=pane.querySelector('#f-end');if(fe)fe.addEventListener('input',()=>{const k=knot(sel.id);k.end=Math.max(k.x+.05,+fe.value);fe.previousElementSibling.textContent='Runs until · '+where(k.end);commit()});
+  // A finger tap on a field: drop focus and take it again synchronously inside the finger's own
+  // tap, so iPadOS treats it as a fresh keyboard request rather than a continuation of Pencil input.
   pane.querySelectorAll('input[type=text],textarea').forEach(el=>{
-    el.addEventListener('touchend',()=>{if(lastPointer==='touch'&&document.activeElement===el){el.blur();setTimeout(()=>el.focus(),0)}});
+    el.addEventListener('click',()=>{if(lastPointer==='touch'){el.blur();el.focus()}});
   });
   const ls=pane.querySelector('#f-lane');if(ls)ls.onchange=()=>{obj.lane=ls.value;commit()};
   pane.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.seg,v=b.dataset.v;
-    if(k==='size')obj.size=v;if(k==='change')obj.change=v;if(k==='weight')obj.weight=+v;if(k==='ltype')obj.type=v;
+    if(k==='tier'){obj.tier=+v;if(obj.tier===1){obj.end=obj.end??Math.min(NB(),obj.x+.5);obj.y=RIB}else if(obj.y<RIB+30)obj.y=110}if(k==='change')obj.change=v;if(k==='weight')obj.weight=+v;if(k==='ltype')obj.type=v;
     commit();renderSide();
   });
   const del=pane.querySelector('#del');
@@ -563,11 +605,11 @@ function exportData(){
   const lname=id=>lane(id)?.name;
   return{
     tool:'Knotenpunkt',version:1,exported:new Date().toISOString(),
-    instructionsForClaude:"This is Sharon's knot board for her trilogy. Knots are series-spanning plot points (major or minor; 'unties' means the knot dissolves over time rather than happening at once). Pins are what a knot does to one character at one point in the story; strings show how impact travels, including secondhand through other characters or through carriers (institutions such as Simon). Positions are given as book and percentage. Audit the web: who is never reached, where threads go quiet, where impacts leave someone unchanged, which secondhand chains could be exploited. Respect anything marked quietOnPurpose. Ask Socratic questions rather than delivering diagnoses, never propose or produce outlines, and offer Kladde-ready factual anchors instead.",
+    instructionsForClaude:"This is Sharon's knot board for her series. Knots are plot points in three tiers (1 = a book's central conflict, spanning 'at' to 'until'; 2 = battles with consequences for characters; 3 = minor details and clues; 'unties' means the knot dissolves over time rather than happening at once). Pins are what a knot does to one character at one point in the story; strings show how impact travels, including secondhand through other characters or through carriers (institutions such as Simon). Positions are given as book and percentage. Audit the web: who is never reached, where threads go quiet, where impacts leave someone unchanged, which secondhand chains could be exploited. Respect anything marked quietOnPurpose. Ask Socratic questions rather than delivering diagnoses, never propose or produce outlines, and offer Kladde-ready factual anchors instead.",
     books:state.books,
     threads:state.lanes.map(l=>({name:l.name,kind:l.type})),
-    knots:state.knots.slice().sort((a,b)=>a.x-b.x).map(k=>({id:k.id,title:k.title,size:k.size,unties:!!k.unties,at:where(k.x),note:k.note||'',reaches:[...lanesReached(k.id)].map(lname)})),
-    pins:state.pins.slice().sort((a,b)=>a.x-b.x).map(p=>({id:p.id,character:lname(p.lane),at:where(p.x),title:p.title,stage:p.stage||'',change:p.change,weight:['','grazes','lands','floors'][p.weight||2],quietOnPurpose:!!p.quiet,note:p.note||''})),
+    knots:state.knots.slice().sort((a,b)=>a.x-b.x).map(k=>({id:k.id,title:k.title,tier:k.tier,unties:!!k.unties,at:where(k.x),until:k.tier===1?where(k.end):undefined,chapter:k.chapter||'',note:k.note||'',reaches:[...lanesReached(k.id)].map(lname)})),
+    pins:state.pins.slice().sort((a,b)=>a.x-b.x).map(p=>({id:p.id,character:lname(p.lane),at:where(p.x),title:p.title,stage:p.stage||'',change:p.change,weight:['','grazes','lands','floors'][p.weight||2],quietOnPurpose:!!p.quiet,chapter:p.chapter||'',note:p.note||''})),
     strings:state.strings.map(s=>({from:nodeName(s.from),to:nodeName(s.to),fromId:s.from,toId:s.to,label:s.label||''})),
     stallFlags:flags().map(f=>f.text),
     _board:state
@@ -578,14 +620,27 @@ function openIO(){
   m.innerHTML=`<div class="card" role="dialog" aria-label="Export and import"><div class="eyebrow">Export · Import</div><h2 style="font-family:var(--display);margin:0">Hand the board to Claude</h2>
     <p class="muted" style="margin:0">Copy this and paste it into a chat. It carries a briefing, so the Claude on the other end knows what knots and strings are. To restore a board, paste an export here and import it.</p>
     <textarea id="io-text" spellcheck="false">${esc(JSON.stringify(exportData(),null,2))}</textarea>
+    <div class="field"><span class="lbl">When importing</span><div class="seg wide" role="group"><button id="io-add" aria-pressed="true">Add to my board</button><button id="io-rep" aria-pressed="false">Replace my board</button></div></div>
     <div class="chips"><button class="btn primary" id="io-copy">Copy for Claude</button><button class="btn" id="io-imp">Import from text</button><label class="btn" for="io-file">Import file…</label><input type="file" id="io-file" accept=".json,application/json" hidden><button class="btn danger" id="io-reset">Reset to example</button><button class="btn" id="io-close" style="margin-left:auto">Close</button></div></div>`;
   document.body.appendChild(m);
   const ta=m.querySelector('#io-text'),close=()=>m.remove();
   m.querySelector('#io-close').onclick=close;m.onclick=e=>{if(e.target===m)close()};
   m.querySelector('#io-copy').onclick=()=>{navigator.clipboard.writeText(ta.value).then(()=>toast('Copied. Paste it into a chat.')).catch(()=>{ta.focus();ta.select();toast('Selected. Copy it with ⌘C.')})};
-  const load=txt=>{try{const d=JSON.parse(txt),b=d._board||d;if(!Array.isArray(b.lanes)||!Array.isArray(b.knots))throw 0;state=b;state.example=false;sel=null;commit();renderSide();close();toast('Board imported.')}catch(e){toast("That isn't a Knotenpunkt export.")}};
-  m.querySelector('#io-imp').onclick=()=>load(ta.value);
-  m.querySelector('#io-file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>load(r.result);r.readAsText(f)};
+  let merge=true;
+  const ad=m.querySelector('#io-add'),rp=m.querySelector('#io-rep');
+  ad.onclick=()=>{merge=true;ad.setAttribute('aria-pressed','true');rp.setAttribute('aria-pressed','false')};
+  rp.onclick=()=>{merge=false;rp.setAttribute('aria-pressed','true');ad.setAttribute('aria-pressed','false')};
+  const load=txt=>{try{const d=JSON.parse(txt),b=normalize(d._board||d);if(!Array.isArray(b.lanes)||!Array.isArray(b.knots))throw 0;
+    if(merge){
+      const lm={},im={};
+      b.lanes.forEach(l=>{let x=state.lanes.find(q=>q.name.toLowerCase()===l.name.toLowerCase());if(!x){x={...l,id:uid('l')};state.lanes.push(x)}lm[l.id]=x.id});
+      b.knots.forEach(k=>{const n={...k,id:uid('k')};im[k.id]=n.id;state.knots.push(n)});
+      b.pins.forEach(p=>{if(!lm[p.lane])return;const n={...p,id:uid('p'),lane:lm[p.lane]};im[p.id]=n.id;state.pins.push(n)});
+      b.strings.forEach(s=>{if(im[s.from]&&im[s.to])state.strings.push({id:uid('s'),from:im[s.from],to:im[s.to],label:s.label||''})});
+      toast(`Added ${b.knots.length} knots and ${b.pins.length} pins.`);
+    }else{state=b;toast('Board replaced.')}
+    state.example=false;sel=null;commit();renderSide();close()}catch(e){toast("That isn't a Knotenpunkt export.")}};
+  m.querySelector('#io-imp').onclick=()=>load(ta.value);  m.querySelector('#io-file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>load(r.result);r.readAsText(f)};
   const rs=m.querySelector('#io-reset');rs.onclick=()=>{if(rs.dataset.arm){state=sample();sel=null;commit();renderSide();close();toast('Example restored.')}else{rs.dataset.arm=1;rs.textContent='Tap again: this replaces your board'}};
 }
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
@@ -598,13 +653,14 @@ $('#v-board').onclick=()=>setView('board');$('#v-grid').onclick=()=>setView('gri
 $('#lens').onclick=()=>{lensOn=!lensOn;$('#lens').textContent=lensOn?'Lens on':'Lens off';$('#lens').setAttribute('aria-pressed',lensOn);renderBoard()};
 $('#zin').onclick=()=>{zoom=Math.min(2.4,zoom*1.2);renderBoard()};
 $('#zout').onclick=()=>{zoom=Math.max(.5,zoom/1.2);renderBoard()};
-$('#add-knot').onclick=()=>{if(view!=='board')setView('board');const t=T(scroller.scrollLeft+scroller.clientWidth/2-104);const k={id:uid('k'),title:'',size:'major',x:t,y:110,note:''};state.knots.push(k);commit();select({type:'knot',id:k.id},true)};
+$('#add-knot').onclick=()=>{if(view!=='board')setView('board');const t=T(scroller.scrollLeft+scroller.clientWidth/2-104);const k={id:uid('k'),title:'',tier:2,x:t,y:110,note:''};state.knots.push(k);commit();select({type:'knot',id:k.id},true)};
 $('#stallbtn').onclick=()=>{tab='flags';sideOpen=true;renderSide()};
 $('#t-insp').onclick=()=>{tab='insp';renderSide()};$('#t-flags').onclick=()=>{tab='flags';renderSide()};
 $('#closeside').onclick=()=>{sideOpen=false;setSide()};
 const setLabels=()=>{$('#labels').textContent=focusLabels?'Labels: focus':'Labels: all';$('#labels').setAttribute('aria-pressed',focusLabels)};
 $('#labels').onclick=()=>{focusLabels=!focusLabels;setLabels();renderBoard()};setLabels();
-$('#fit').onclick=()=>{zoom=clamp((scroller.clientWidth-104-PAD*2)/(3*480),.4,2.4);renderBoard();scroller.scrollLeft=0};
+$('#fit').onclick=()=>{zoom=clamp((scroller.clientWidth-104-PAD*2)/(NB()*480),.3,2.4);renderBoard();scroller.scrollLeft=0};
+$('#tiers').onclick=()=>{maxTier=maxTier===1?3:maxTier-1;$('#tiers').textContent=maxTier===3?'Tiers 1–3':maxTier===2?'Tiers 1–2':'Tier 1 only';renderBoard()};
 $('#iobtn').onclick=openIO;
 document.addEventListener('keydown',e=>{
   if(e.target.closest('input,textarea,select'))return;
