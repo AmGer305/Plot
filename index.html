@@ -103,6 +103,18 @@ svg text{font-family:var(--body)}
 .modal textarea{width:100%;min-height:260px;flex:1;border:1px solid var(--rule);border-radius:8px;background:var(--board);padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:.78rem}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--board);padding:8px 16px;border-radius:999px;font-size:.9rem;z-index:30}
 
+.closeside{border:0;background:transparent;padding:0 14px;font-size:1.1rem;color:var(--muted);flex:none!important;border-bottom:2px solid transparent}
+.closeside{display:none}
+@media (max-width:1300px) and (min-width:861px){
+  .brand span{display:none}
+  .top{gap:8px 10px;padding-block:8px}
+  .btn{padding:5px 11px}
+  .main{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;right:max(16px,env(safe-area-inset-right,0px));top:calc(64px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:340px;z-index:15;
+    box-shadow:0 18px 50px color-mix(in srgb,var(--ink) 25%,transparent);transform:translateX(calc(100% + 40px));transition:transform .22s ease}
+  .side.open{transform:none}
+  .closeside{display:block}
+}
 @media (max-width:860px){
   html,body{height:auto}
   .main{display:flex;flex-direction:column}
@@ -127,6 +139,8 @@ svg text{font-family:var(--body)}
       <button id="v-grid" aria-pressed="false">Grid</button>
     </div>
     <button class="btn" id="lens" aria-pressed="true">Lens on</button>
+    <button class="btn" id="labels" aria-pressed="false">Labels: all</button>
+    <button class="btn" id="fit">Fit</button>
     <button class="btn" id="zout" aria-label="Zoom out">−</button>
     <button class="btn" id="zin" aria-label="Zoom in">+</button>
   </div>
@@ -142,6 +156,7 @@ svg text{font-family:var(--body)}
     <div class="tabs" role="tablist">
       <button role="tab" id="t-insp" aria-selected="true">Inspector</button>
       <button role="tab" id="t-flags" aria-selected="false">Stall check</button>
+      <button class="closeside" id="closeside" aria-label="Close panel">✕</button>
     </div>
     <div class="pane" id="pane"></div>
   </aside>
@@ -203,7 +218,9 @@ try{state=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!state||!Array.isArray(state.lanes))state=sample();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
 
-let sel=null, mode='move', zoom=1, lensOn=true, view='board', tab='insp';
+let sel=null, mode='move', zoom=1, lensOn=true, view='board', tab='insp', sideOpen=false;
+let focusLabels=window.innerWidth<=1300, lastPointer='mouse';
+document.addEventListener('pointerdown',e=>{lastPointer=e.pointerType||'mouse'},true);
 
 /* geometry */
 const PAD=40,HEAD=36,KB0=46,KB1=196,LY=214,LH=78;
@@ -308,13 +325,16 @@ function renderBoard(){
   for(const ln in byLane)byLane[ln].forEach((p,j)=>{
     const i=laneIdx(p.lane);if(i<0)return;const l=state.lanes[i],x=X(p.x),y=laneY(i),r=radius(p.id),isSel=sel&&sel.type==='pin'&&sel.id===p.id;
     const above=j%2===0,ly=above?y-r-8:y+r+16;
+    const showLab=!focusLabels||isSel||(L&&L.nodes.has(p.id));
     const glyph={grow:'↑',worse:'↓',shift:'↝',same:'='}[p.change]||'';
     s+=`<g${dim(p.id)}>`;
     if(isSel)s+=`<circle cx="${x}" cy="${y}" r="${r+6}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
     s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${l.color}" stroke="var(--board)" stroke-width="2"/>`;
+    if(showLab){
     s+=`<text x="${x+r+4}" y="${ly}" font-size="11.5" fill="var(--ink)"><tspan fill="${l.color}" font-weight="700">${glyph}</tspan> ${esc(trunc(p.title||'untitled',isSel?60:24))}</text>`;
     if(p.stage)s+=`<text x="${x+r+4}" y="${above?ly-13:ly+12}" font-size="9.5" letter-spacing=".8" fill="var(--muted)">${esc(p.stage.toUpperCase())}</text>`;
     if(p.quiet)s+=`<text x="${x+r+4}" y="${y+4}" font-size="10" fill="var(--muted)">…quiet on purpose</text>`;
+    }
     s+=`<circle cx="${x}" cy="${y}" r="${Math.max(r,14)}" fill="transparent" data-id="${p.id}" data-t="pin"/></g>`;
   });
   // knots
@@ -423,14 +443,18 @@ function addAt(pt){
 
 /* ---------- inspector ---------- */
 const pane=$('#pane');
-function select(s,focus){sel=s;tab='insp';renderBoard();renderSide();if(focus){const i=pane.querySelector('input[type=text]');if(i)i.focus()}}
+function select(s,focus){sel=s;tab='insp';sideOpen=!!s;renderBoard();renderSide();
+  // Only jump into the name field for mouse users. On iPad a programmatic focus after a Pencil
+  // gesture hands the field to Scribble; finger users tap the field themselves and get the keyboard.
+  if(focus&&lastPointer==='mouse'){const i=pane.querySelector('input[type=text]');if(i)i.focus()}}
+function setSide(){document.querySelector('.side').classList.toggle('open',sideOpen)}
 function commit(){save();renderBoard()}
 function seg(name,opts,val){return `<div class="seg wide" role="group">${opts.map(([v,t])=>`<button data-seg="${name}" data-v="${v}" aria-pressed="${String(val)===String(v)}">${t}</button>`).join('')}</div>`}
 let armed=null;
 function delBtn(label){return `<button class="btn danger" id="del">${label}</button>`}
 
 function renderSide(){
-  $('#t-insp').setAttribute('aria-selected',tab==='insp');$('#t-flags').setAttribute('aria-selected',tab==='flags');
+  $('#t-insp').setAttribute('aria-selected',tab==='insp');$('#t-flags').setAttribute('aria-selected',tab==='flags');setSide();
   if(tab==='flags')return renderFlags();
   let h='';
   if(!sel){
@@ -491,6 +515,11 @@ function bindSide(){
   const bindIn=(id,key)=>{const el=pane.querySelector('#'+id);if(el&&obj)el.addEventListener('input',()=>{obj[key]=el.type==='checkbox'?el.checked:el.value;commit()})};
   bindIn('f-title','title');bindIn('f-note','note');bindIn('f-stage','stage');bindIn('f-name','name');bindIn('f-color','color');bindIn('f-label','label');
   bindIn('f-unties','unties');bindIn('f-quiet','quiet');
+  // A finger tap on a field the Pencil last wrote into: drop focus and take it again inside the
+  // finger's own tap, so iPadOS brings up the on-screen keyboard instead of the Scribble palette.
+  pane.querySelectorAll('input[type=text],textarea').forEach(el=>{
+    el.addEventListener('touchend',()=>{if(lastPointer==='touch'&&document.activeElement===el){el.blur();setTimeout(()=>el.focus(),0)}});
+  });
   const ls=pane.querySelector('#f-lane');if(ls)ls.onchange=()=>{obj.lane=ls.value;commit()};
   pane.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.seg,v=b.dataset.v;
@@ -570,8 +599,12 @@ $('#lens').onclick=()=>{lensOn=!lensOn;$('#lens').textContent=lensOn?'Lens on':'
 $('#zin').onclick=()=>{zoom=Math.min(2.4,zoom*1.2);renderBoard()};
 $('#zout').onclick=()=>{zoom=Math.max(.5,zoom/1.2);renderBoard()};
 $('#add-knot').onclick=()=>{if(view!=='board')setView('board');const t=T(scroller.scrollLeft+scroller.clientWidth/2-104);const k={id:uid('k'),title:'',size:'major',x:t,y:110,note:''};state.knots.push(k);commit();select({type:'knot',id:k.id},true)};
-$('#stallbtn').onclick=()=>{tab='flags';renderSide()};
+$('#stallbtn').onclick=()=>{tab='flags';sideOpen=true;renderSide()};
 $('#t-insp').onclick=()=>{tab='insp';renderSide()};$('#t-flags').onclick=()=>{tab='flags';renderSide()};
+$('#closeside').onclick=()=>{sideOpen=false;setSide()};
+const setLabels=()=>{$('#labels').textContent=focusLabels?'Labels: focus':'Labels: all';$('#labels').setAttribute('aria-pressed',focusLabels)};
+$('#labels').onclick=()=>{focusLabels=!focusLabels;setLabels();renderBoard()};setLabels();
+$('#fit').onclick=()=>{zoom=clamp((scroller.clientWidth-104-PAD*2)/(3*480),.4,2.4);renderBoard();scroller.scrollLeft=0};
 $('#iobtn').onclick=openIO;
 document.addEventListener('keydown',e=>{
   if(e.target.closest('input,textarea,select'))return;
