@@ -1,0 +1,586 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Knotenpunkt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,600;0,700;1,400&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: a trilogy laid out left→right as three book bands; knots float in a band on top,
+   each character is a thread running underneath; strings tie knots to threads. Inspector on the right. */
+:root{
+  --bg:#e9ecf1; --board:#f6f7f9; --band:#eef1f5; --panel:#ffffff;
+  --ink:#1d2232; --muted:#646b7e; --rule:#d3d8e1;
+  --accent:#3d3f94; --gold:#9a7317; --flag:#b23a32; --ok:#2f7a4f;
+  --display:"Alegreya", Georgia, "Times New Roman", serif;
+  --body:"Alegreya Sans", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10121a; --board:#171a24; --band:#1c2030; --panel:#1b1f2c;
+  --ink:#e6e7ef; --muted:#959bb0; --rule:#2d3244;
+  --accent:#a5a8ff; --gold:#e2bb5c; --flag:#ff7f72; --ok:#6fd39a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10121a; --board:#171a24; --band:#1c2030; --panel:#1b1f2c;
+  --ink:#e6e7ef; --muted:#959bb0; --rule:#2d3244;
+  --accent:#a5a8ff; --gold:#e2bb5c; --flag:#ff7f72; --ok:#6fd39a; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding-block:12px}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand h1{font-family:var(--display);font-weight:700;font-size:1.55rem;margin:0;letter-spacing:.01em}
+.brand span{color:var(--muted);font-size:.9rem}
+.group{display:flex;gap:6px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;padding:6px 12px;font-size:.9rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--board)}
+.btn{border:1px solid var(--rule);background:var(--panel);border-radius:999px;padding:6px 13px;font-size:.9rem}
+.btn:hover{border-color:var(--accent)}
+.btn.flagbtn{border-color:var(--flag);color:var(--flag);font-weight:600}
+.btn.danger{color:var(--flag)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--board)}
+
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;padding-bottom:14px}
+.scroller{overflow:auto;background:var(--board);border:1px solid var(--rule);border-radius:14px;position:relative;min-width:0}
+.boardrow{display:flex;width:max-content}
+.labels{position:sticky;left:0;z-index:2;width:104px;flex:none;background:var(--board);border-right:1px solid var(--rule)}
+.labels .lab{position:absolute;left:0;right:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:0 10px;border:0;background:transparent;text-align:left;border-bottom:1px solid var(--rule)}
+.labels .lab .nm{display:flex;align-items:center;gap:7px;font-family:var(--display);font-weight:600;font-size:1.02rem}
+.labels .lab .sw{width:10px;height:10px;border-radius:50%;flex:none}
+.labels .lab .meta{font-size:.74rem;color:var(--muted)}
+.labels .lab .meta b{color:var(--flag);font-weight:600}
+.labels .lab[aria-pressed="true"]{background:var(--band)}
+.labels .knotlab{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);cursor:default}
+svg#board{display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+svg text{font-family:var(--body)}
+.k-label{font-family:var(--display)}
+
+.side{min-width:0;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--rule)}
+.tabs button{flex:1;border:0;background:transparent;padding:10px;font-size:.92rem;color:var(--muted);border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.pane{padding:16px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.pane h2{font-family:var(--display);font-size:1.3rem;margin:0;text-wrap:balance}
+.eyebrow{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label,.field .lbl{font-size:.8rem;color:var(--muted)}
+.field input[type=text],.field textarea,.field select{width:100%;border:1px solid var(--rule);background:var(--board);border-radius:8px;padding:8px 10px}
+.field textarea{min-height:84px;resize:vertical}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:.9rem}
+.check input{margin-top:3px}
+.seg.wide{display:flex}
+.seg.wide button{flex:1;padding:7px 6px;font-size:.84rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:3px 10px;font-size:.82rem;background:var(--board)}
+.chip.miss{border-color:var(--flag);color:var(--flag)}
+.chip .sw{width:8px;height:8px;border-radius:50%}
+.help{font-size:.92rem;line-height:1.45;color:var(--ink)}
+.help p{margin:0 0 8px}
+.help kbd{font-family:var(--body);font-size:.8rem;border:1px solid var(--rule);border-radius:4px;padding:0 5px;background:var(--board)}
+.muted{color:var(--muted)}
+.flag{border-left:3px solid var(--flag);padding:6px 0 6px 10px;display:flex;flex-direction:column;gap:6px}
+.flag .t{font-size:.92rem}
+.flag .row{display:flex;gap:6px;flex-wrap:wrap}
+.flag .row button{font-size:.8rem;padding:3px 10px}
+.flaggroup h3{font-family:var(--display);font-size:1.05rem;margin:4px 0 6px;display:flex;align-items:center;gap:8px}
+.example{font-size:.82rem;color:var(--muted);border:1px dashed var(--rule);border-radius:8px;padding:8px 10px}
+
+.grid{border-collapse:separate;border-spacing:0;font-size:.86rem}
+.grid th,.grid td{border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);padding:8px;vertical-align:top;min-width:150px;max-width:200px}
+.grid thead th{position:sticky;top:0;background:var(--board);z-index:1;text-align:left;font-family:var(--display)}
+.grid tbody th{position:sticky;left:0;background:var(--board);z-index:1;text-align:left;min-width:100px;font-family:var(--display)}
+.grid .kmeta{display:block;font-family:var(--body);font-weight:400;font-size:.74rem;color:var(--muted)}
+.grid td.miss{background:color-mix(in srgb,var(--flag) 9%,transparent);color:var(--flag)}
+.grid .pinref{display:block;border:0;background:transparent;text-align:left;padding:2px 0;cursor:pointer}
+.grid .pinref:hover{text-decoration:underline}
+
+.modal{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 40%,transparent);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.modal .card{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:18px;max-width:720px;width:100%;display:flex;flex-direction:column;gap:12px;max-height:90%}
+.modal textarea{width:100%;min-height:260px;flex:1;border:1px solid var(--rule);border-radius:8px;background:var(--board);padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:.78rem}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--board);padding:8px 16px;border-radius:999px;font-size:.9rem;z-index:30}
+
+@media (max-width:860px){
+  html,body{height:auto}
+  .main{display:flex;flex-direction:column}
+  .scroller{height:62vh}
+  .side{max-height:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="brand"><h1>Knotenpunkt</h1><span>knots, threads &amp; who's stalling</span></div>
+  <div class="group">
+    <div class="seg" role="group" aria-label="Finger mode">
+      <button id="m-move" aria-pressed="true" title="Finger/mouse drags things">Move</button>
+      <button id="m-string" aria-pressed="false" title="Finger/mouse draws strings">String</button>
+    </div>
+    <button class="btn" id="add-knot">+ Knot</button>
+  </div>
+  <div class="group">
+    <div class="seg" role="group" aria-label="View">
+      <button id="v-board" aria-pressed="true">Board</button>
+      <button id="v-grid" aria-pressed="false">Grid</button>
+    </div>
+    <button class="btn" id="lens" aria-pressed="true">Lens on</button>
+    <button class="btn" id="zout" aria-label="Zoom out">−</button>
+    <button class="btn" id="zin" aria-label="Zoom in">+</button>
+  </div>
+  <div class="group">
+    <button class="btn flagbtn" id="stallbtn">Stall check</button>
+    <button class="btn" id="iobtn">Export · Import</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="scroller" id="scroller"></div>
+  <aside class="side">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-insp" aria-selected="true">Inspector</button>
+      <button role="tab" id="t-flags" aria-selected="false">Stall check</button>
+    </div>
+    <div class="pane" id="pane"></div>
+  </aside>
+</div>
+
+<script>
+(()=>{
+const KEY='knotenpunkt.v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>p+Math.random().toString(36).slice(2,8);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const trunc=(s,n)=>{s=s||'';return s.length>n?s.slice(0,n-1)+'…':s};
+
+function sample(){return{
+  example:true,
+  books:['The Richter Scale','Mar/Herida','Chaos'],
+  lanes:[
+    {id:'lucas',name:'Lucas',color:'#3f8fbf',type:'character'},
+    {id:'bence',name:'Bençe',color:'#d0703a',type:'character'},
+    {id:'jon',name:'Jon',color:'#4f9a67',type:'character'},
+    {id:'ari',name:'Ari',color:'#b0629b',type:'character'},
+    {id:'andre',name:'André',color:'#bf9a1f',type:'character'},
+    {id:'maxwell',name:'Maxwell',color:'#7b6fd6',type:'character'},
+    {id:'simon',name:'Simon',color:'#8a8f99',type:'carrier'}],
+  knots:[
+    {id:'k_ceo',title:'Saul grabs for CEO',size:'major',x:.28,y:78,note:'Also has to threaten André and Maxwell so they are more than funny uncles.'},
+    {id:'k_crates',title:'Suspiciously empty crates',size:'minor',x:.38,y:150,note:''},
+    {id:'k_fraud',title:'Lucas uncovers the sweatshops',size:'major',x:.56,y:96,note:'Elias waved the audit through. Kicks off the second half.'},
+    {id:'k_death',title:'Saul returns, only to die',size:'major',x:2.4,y:78,note:'Means more to Bençe than he will ever admit.'},
+    {id:'k_max',title:'Maxwell confronts Bençe',size:'major',x:2.62,y:150,note:'Offers to be the father Bençe never had.'},
+    {id:'k_enough',title:'"Never enough" comes undone',size:'major',unties:true,x:2.88,y:78,note:'Unties rather than happens: the standard was impossible all along.'}],
+  pins:[
+    {id:'p1',lane:'lucas',x:.12,title:'Dragged in as the numbers guy',change:'worse',weight:2},
+    {id:'p2',lane:'lucas',x:.4,title:'Sees the empty crates. Tells no one.',stage:'keeps it',change:'worse',weight:2},
+    {id:'p3',lane:'lucas',x:.6,title:'First real let-down with Jon',change:'worse',weight:3},
+    {id:'p4',lane:'maxwell',x:.31,title:'Threatened by Saul',change:'shift',weight:2},
+    {id:'p5',lane:'andre',x:.32,title:'Threatened by Saul',change:'shift',weight:2},
+    {id:'p6',lane:'simon',x:.44,title:'Learns about the crates',change:'shift',weight:1},
+    {id:'p7',lane:'jon',x:.5,title:'Simon tells him about the crates',stage:'finds out',change:'worse',weight:2},
+    {id:'p8',lane:'jon',x:.58,title:'"I thought he was ready."',change:'worse',weight:3},
+    {id:'p10',lane:'bence',x:2.44,title:"Acts like he doesn't care",change:'same',weight:2},
+    {id:'p11',lane:'lucas',x:2.47,title:'Senses something is off',stage:'senses',change:'shift',weight:1},
+    {id:'p12',lane:'lucas',x:2.55,title:'Tell him or not?',stage:'bargains',change:'worse',weight:2},
+    {id:'p13',lane:'maxwell',x:2.62,title:'Offers to be his father',change:'grow',weight:3},
+    {id:'p14',lane:'bence',x:2.65,title:'The grief breaks through',change:'grow',weight:3},
+    {id:'p15',lane:'lucas',x:2.68,title:'Beaten to it by Maxwell?',change:'shift',weight:1,note:'Open question: does this feel like not-enough, in the one place he should be enough?'},
+    {id:'p16',lane:'lucas',x:2.9,title:'Enough: for Bençe, Jon, the company',change:'grow',weight:3}],
+  strings:[
+    ['k_ceo','p4'],['k_ceo','p5'],['k_crates','p2'],['k_crates','p6'],['p6','p7'],['p7','p8'],
+    ['p2','p3'],['p8','p3'],['p2','k_fraud'],['k_death','p10'],['p10','p11','secondhand, through Bençe'],
+    ['p11','p12'],['k_death','k_max'],['k_max','p13'],['k_max','p14'],['k_max','p15'],['p12','p15'],['k_enough','p16']
+  ].map(([from,to,label])=>({id:uid('s'),from,to,label:label||''})),
+  silenced:[]
+}}
+
+let state=null;
+try{state=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!state||!Array.isArray(state.lanes))state=sample();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+let sel=null, mode='move', zoom=1, lensOn=true, view='board', tab='insp';
+
+/* geometry */
+const PAD=40,HEAD=36,KB0=46,KB1=196,LY=214,LH=78;
+const bw=()=>480*zoom;
+const X=t=>PAD+t*bw();
+const T=x=>clamp((x-PAD)/bw(),0,3);
+const laneIdx=id=>state.lanes.findIndex(l=>l.id===id);
+const laneY=i=>LY+i*LH+LH/2;
+const H=()=>LY+state.lanes.length*LH+24;
+const W=()=>PAD*2+3*bw();
+const knot=id=>state.knots.find(k=>k.id===id);
+const pin=id=>state.pins.find(p=>p.id===id);
+const lane=id=>state.lanes.find(l=>l.id===id);
+const radius=id=>{const k=knot(id);if(k)return k.size==='major'?17:10;const p=pin(id);return p?5+(p.weight||2)*1.6:6};
+function pos(id){const k=knot(id);if(k)return{x:X(k.x),y:k.y};const p=pin(id);if(p)return{x:X(p.x),y:laneY(laneIdx(p.lane))};return null}
+function nodeName(id){const k=knot(id);if(k)return k.title||'Untitled knot';const p=pin(id);if(p)return `${lane(p.lane)?.name||'?'}: ${p.title||'untitled'}`;return '?'}
+
+function reach(start,dir){
+  const nodes=new Set(start),strs=new Set(),q=[...start];
+  while(q.length){const n=q.shift();for(const s of state.strings){const a=dir>0?s.from:s.to,b=dir>0?s.to:s.from;if(a===n){strs.add(s.id);if(!nodes.has(b)){nodes.add(b);q.push(b)}}}}
+  return{nodes,strs};
+}
+function lens(){
+  if(!lensOn||!sel)return null;
+  if(sel.type==='knot')return reach([sel.id],1);
+  if(sel.type==='pin'){const u=reach([sel.id],-1),d=reach([sel.id],1);return{nodes:new Set([...u.nodes,...d.nodes]),strs:new Set([...u.strs,...d.strs]),lanes:new Set()}}
+  if(sel.type==='lane'){
+    const ids=state.pins.filter(p=>p.lane===sel.id).map(p=>p.id);const u=reach(ids,-1);
+    for(const s of state.strings)if(ids.includes(s.from)){u.strs.add(s.id);u.nodes.add(s.to)}
+    u.lanes=new Set([sel.id]);return u;
+  }
+  if(sel.type==='string'){const s=state.strings.find(s=>s.id===sel.id);return s?{nodes:new Set([s.from,s.to]),strs:new Set([s.id])}:null}
+  return null;
+}
+function lanesReached(kid){const r=reach([kid],1);const set=new Set();for(const id of r.nodes){const p=pin(id);if(p)set.add(p.lane)}return set}
+
+/* stall detector */
+const GAP=.6;
+function flags(){
+  const out=[],sil=new Set(state.silenced||[]);
+  for(const l of state.lanes){
+    if(l.type!=='character')continue;
+    const ps=state.pins.filter(p=>p.lane===l.id).sort((a,b)=>a.x-b.x);
+    if(!ps.length){if(!sil.has('empty:'+l.id))out.push({key:'empty:'+l.id,lane:l.id,kind:'empty',text:`${l.name} has no pins at all. Is that a gap you forgot, or a silence that means something?`,x0:0,x1:3});continue}
+    if(ps[0].x>GAP&&!sil.has('gapstart:'+l.id))out.push({key:'gapstart:'+l.id,lane:l.id,kind:'gap',text:`${l.name} only shows up at ${where(ps[0].x)}.`,x0:0,x1:ps[0].x});
+    for(let i=0;i<ps.length-1;i++){const a=ps[i],b=ps[i+1];if(b.x-a.x>GAP&&!a.quiet)out.push({key:'gap:'+a.id,pin:a.id,lane:l.id,kind:'gap',text:`${l.name}'s thread goes quiet from ${where(a.x)} to ${where(b.x)}.`,x0:a.x,x1:b.x})}
+    const last=ps[ps.length-1];
+    if(3-last.x>GAP&&!sil.has('gapend:'+l.id))out.push({key:'gapend:'+l.id,lane:l.id,kind:'gap',text:`${l.name} has nothing after ${where(last.x)}.`,x0:last.x,x1:3});
+    let run=0;
+    for(let i=0;i<ps.length;i++){run=ps[i].change==='same'?run+1:0;if(run===3){const s=ps[i-2];if(!s.quiet)out.push({key:'same:'+s.id,pin:s.id,lane:l.id,kind:'same',text:`${l.name} passes through three moments in a row and comes out unchanged.`,x0:s.x,x1:ps[i].x})}}
+  }
+  for(const k of state.knots){
+    if(k.size!=='major')continue;const r=lanesReached(k.id);
+    for(const l of state.lanes){if(l.type!=='character'||r.has(l.id))continue;const key='untouched:'+k.id+':'+l.id;if(sil.has(key))continue;
+      out.push({key,lane:l.id,knot:k.id,kind:'untouched',text:`"${k.title}" never reaches ${l.name}.`})}
+  }
+  return out;
+}
+function where(t){const b=Math.min(2,Math.floor(t));return `Book ${b+1}, ${Math.round((t-b)*100)}%`}
+function silence(f){if(f.pin){const p=pin(f.pin);if(p)p.quiet=true}else{state.silenced=state.silenced||[];state.silenced.push(f.key)}commit()}
+
+/* ---------- board ---------- */
+const scroller=$('#scroller');
+function renderBoard(){
+  if(view==='grid')return renderGrid();
+  const L=lens(),fl=flags(),w=W(),h=H();
+  const dim=id=>L&&!L.nodes.has(id)?' opacity=".14"':'';
+  let s=`<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="var(--flag)" stroke-width="2" opacity=".35"/></pattern></defs>`;
+  // books
+  for(let b=0;b<3;b++){
+    s+=`<rect x="${X(b)}" y="0" width="${bw()}" height="${h}" fill="${b%2?'var(--band)':'var(--board)'}"/>`;
+    s+=`<text x="${X(b)+12}" y="23" font-size="11" letter-spacing="1.6" fill="var(--muted)">BOOK ${b+1}</text>`;
+    s+=`<text class="k-label" x="${X(b)+62}" y="23" font-size="14" font-style="italic" fill="var(--ink)">${esc(state.books[b])}</text>`;
+    for(let q=1;q<4;q++)s+=`<line x1="${X(b+q/4)}" y1="${HEAD-6}" x2="${X(b+q/4)}" y2="${h}" stroke="var(--rule)" stroke-dasharray="2 6"/>`;
+  }
+  s+=`<line x1="0" y1="${HEAD}" x2="${w}" y2="${HEAD}" stroke="var(--rule)"/>`;
+  s+=`<line x1="0" y1="${KB1+8}" x2="${w}" y2="${KB1+8}" stroke="var(--rule)"/>`;
+  // lanes
+  state.lanes.forEach((l,i)=>{
+    const y=laneY(i),on=!L||!L.lanes||L.lanes.has(l.id)||state.pins.some(p=>p.lane===l.id&&L.nodes.has(p.id));
+    s+=`<line x1="${X(0)}" y1="${y}" x2="${X(3)}" y2="${y}" stroke="${l.color}" stroke-width="${sel&&sel.type==='lane'&&sel.id===l.id?4:2.2}" stroke-linecap="round" ${l.type==='carrier'?'stroke-dasharray="1 7"':''} opacity="${L&&!on?.12:.55}"/>`;
+    s+=`<line x1="0" y1="${LY+(i+1)*LH}" x2="${w}" y2="${LY+(i+1)*LH}" stroke="var(--rule)" opacity=".6"/>`;
+  });
+  // gap flags
+  for(const f of fl){if(f.kind==='untouched')continue;const i=laneIdx(f.lane);s+=`<rect x="${X(f.x0)+6}" y="${laneY(i)-14}" width="${Math.max(0,X(f.x1)-X(f.x0)-12)}" height="28" rx="14" fill="url(#hatch)"${L?' opacity=".3"':''}/>`}
+  // strings
+  for(const st of state.strings){
+    const a=pos(st.from),b=pos(st.to);if(!a||!b)continue;
+    const fromPin=pin(st.from),col=fromPin?lane(fromPin.lane)?.color:'var(--ink)';
+    const tp=pin(st.to),wd=tp?[0,1.3,2.1,3.2][tp.weight||2]:1.8;
+    let d,cx,cy;
+    if(Math.abs(b.y-a.y)<24){cx=(a.x+b.x)/2;cy=Math.min(a.y,b.y)-36;d=`M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}`}
+    else{const c1y=a.y+(b.y-a.y)*.5;cx=b.x;cy=b.y-(b.y-a.y)*.5;d=`M${a.x} ${a.y} C${a.x} ${c1y} ${cx} ${cy} ${b.x} ${b.y}`}
+    const ang=Math.atan2(b.y-cy,b.x-cx),r=radius(st.to)+2,tx=b.x-Math.cos(ang)*r,ty=b.y-Math.sin(ang)*r;
+    const ah=7,p1=`${tx},${ty}`,p2=`${tx-Math.cos(ang-.45)*ah},${ty-Math.sin(ang-.45)*ah}`,p3=`${tx-Math.cos(ang+.45)*ah},${ty-Math.sin(ang+.45)*ah}`;
+    const isSel=sel&&sel.type==='string'&&sel.id===st.id,op=L&&!L.strs.has(st.id)?.1:(fromPin?.85:.7);
+    s+=`<g opacity="${op}"><path d="${d}" fill="none" stroke="${col}" stroke-width="${isSel?wd+2:wd}" ${fromPin?'stroke-dasharray="6 4"':''}/><polygon points="${p1} ${p2} ${p3}" fill="${col}"/>`;
+    s+=`<path d="${d}" fill="none" stroke="transparent" stroke-width="16" data-id="${st.id}" data-t="string"/></g>`;
+  }
+  // pins
+  const byLane={};state.pins.slice().sort((a,b)=>a.x-b.x).forEach(p=>{(byLane[p.lane]=byLane[p.lane]||[]).push(p)});
+  for(const ln in byLane)byLane[ln].forEach((p,j)=>{
+    const i=laneIdx(p.lane);if(i<0)return;const l=state.lanes[i],x=X(p.x),y=laneY(i),r=radius(p.id),isSel=sel&&sel.type==='pin'&&sel.id===p.id;
+    const above=j%2===0,ly=above?y-r-8:y+r+16;
+    const glyph={grow:'↑',worse:'↓',shift:'↝',same:'='}[p.change]||'';
+    s+=`<g${dim(p.id)}>`;
+    if(isSel)s+=`<circle cx="${x}" cy="${y}" r="${r+6}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+    s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${l.color}" stroke="var(--board)" stroke-width="2"/>`;
+    s+=`<text x="${x+r+4}" y="${ly}" font-size="11.5" fill="var(--ink)"><tspan fill="${l.color}" font-weight="700">${glyph}</tspan> ${esc(trunc(p.title||'untitled',isSel?60:24))}</text>`;
+    if(p.stage)s+=`<text x="${x+r+4}" y="${above?ly-13:ly+12}" font-size="9.5" letter-spacing=".8" fill="var(--muted)">${esc(p.stage.toUpperCase())}</text>`;
+    if(p.quiet)s+=`<text x="${x+r+4}" y="${y+4}" font-size="10" fill="var(--muted)">…quiet on purpose</text>`;
+    s+=`<circle cx="${x}" cy="${y}" r="${Math.max(r,14)}" fill="transparent" data-id="${p.id}" data-t="pin"/></g>`;
+  });
+  // knots
+  for(const k of state.knots){
+    const x=X(k.x),y=k.y,maj=k.size==='major',r=maj?17:10,isSel=sel&&sel.type==='knot'&&sel.id===k.id,col=maj?'var(--gold)':'var(--accent)';
+    const miss=maj?state.lanes.filter(l=>l.type==='character').length-lanesReached(k.id).size:0;
+    s+=`<g${dim(k.id)}>`;
+    if(isSel)s+=`<circle cx="${x}" cy="${y}" r="${r+7}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+    s+=`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--board)" stroke="${col}" stroke-width="${maj?3:2.2}" ${k.unties?'stroke-dasharray="5 4"':''}/>`;
+    s+=`<circle cx="${x-r*.28}" cy="${y}" r="${r*.42}" fill="none" stroke="${col}" stroke-width="1.6" ${k.unties?'stroke-dasharray="3 3"':''}/><circle cx="${x+r*.28}" cy="${y}" r="${r*.42}" fill="none" stroke="${col}" stroke-width="1.6" ${k.unties?'stroke-dasharray="3 3"':''}/>`;
+    s+=`<text class="k-label" x="${x}" y="${y+r+16}" text-anchor="middle" font-size="${maj?13.5:12}" font-weight="${maj?700:400}" ${maj?'':'font-style="italic"'} fill="var(--ink)">${esc(trunc(k.title,isSel?60:28))}</text>`;
+    if(miss>0)s+=`<text x="${x+r+3}" y="${y-r+4}" font-size="10.5" font-weight="700" fill="var(--flag)">${miss} untouched</text>`;
+    s+=`<circle cx="${x}" cy="${y}" r="${r+6}" fill="transparent" data-id="${k.id}" data-t="knot"/></g>`;
+  }
+  // live string
+  if(drag&&drag.type==='string'&&drag.moved){const a=pos(drag.from);if(a)s+=`<line x1="${a.x}" y1="${a.y}" x2="${drag.x}" y2="${drag.y}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 4"/><circle cx="${drag.x}" cy="${drag.y}" r="5" fill="var(--accent)"/>`}
+
+  // labels column
+  const flagCount={};fl.forEach(f=>{flagCount[f.lane]=(flagCount[f.lane]||0)+1});
+  let labs=`<div class="lab knotlab" style="top:${KB0-10}px;height:${KB1-KB0+18}px">Knots</div>`;
+  state.lanes.forEach((l,i)=>{const n=state.pins.filter(p=>p.lane===l.id).length,fc=flagCount[l.id]||0;
+    labs+=`<button class="lab" data-lane="${l.id}" aria-pressed="${sel&&sel.type==='lane'&&sel.id===l.id}" style="top:${LY+i*LH}px;height:${LH}px"><span class="nm"><span class="sw" style="background:${l.color}"></span>${esc(l.name)}</span><span class="meta">${l.type==='carrier'?'carrier · ':''}${n} pin${n===1?'':'s'}${fc?` · <b>${fc} flag${fc===1?'':'s'}</b>`:''}</span></button>`});
+
+  const prevL=scroller.scrollLeft,prevT=scroller.scrollTop;
+  scroller.innerHTML=`<div class="boardrow"><div class="labels" style="height:${h}px">${labs}</div><svg id="board" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Knot board">${s}</svg></div>`;
+  scroller.scrollLeft=prevL;scroller.scrollTop=prevT;
+  $('#stallbtn').textContent=`Stall check (${fl.length})`;
+  bindBoard();
+}
+
+function renderGrid(){
+  const fl=flags();$('#stallbtn').textContent=`Stall check (${fl.length})`;
+  const ks=state.knots.slice().sort((a,b)=>a.x-b.x),chars=state.lanes;
+  let h=`<table class="grid"><thead><tr><th></th>${ks.map(k=>`<th><button class="pinref" data-sel="knot:${k.id}">${esc(k.title)}</button><span class="kmeta">${k.size==='major'?'major':'minor'}${k.unties?' · unties':''} · ${where(k.x)}</span></th>`).join('')}</tr></thead><tbody>`;
+  for(const l of chars){
+    h+=`<tr><th><button class="pinref" data-sel="lane:${l.id}" style="color:${l.color}">${esc(l.name)}</button></th>`;
+    for(const k of ks){
+      const r=reach([k.id],1),ps=state.pins.filter(p=>p.lane===l.id&&r.nodes.has(p.id)).sort((a,b)=>a.x-b.x);
+      const miss=!ps.length&&k.size==='major'&&l.type==='character';
+      h+=`<td class="${miss?'miss':''}">${ps.length?ps.map(p=>`<button class="pinref" data-sel="pin:${p.id}">${{grow:'↑',worse:'↓',shift:'↝',same:'='}[p.change]||''} ${esc(p.title||'untitled')}${p.x-k.x>.15?` <span class="muted">(later)</span>`:''}</button>`).join(''):(miss?'untouched':'<span class="muted">·</span>')}</td>`;
+    }
+    h+='</tr>';
+  }
+  scroller.innerHTML=h+'</tbody></table>';
+  scroller.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>{const[t,id]=b.dataset.sel.split(':');select({type:t,id})});
+}
+
+/* ---------- pointer ---------- */
+let drag=null,lastTap={t:0,x:0,y:0};
+function svgPt(e){const r=$('#board').getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function bindBoard(){
+  const svg=$('#board');
+  scroller.querySelectorAll('.lab[data-lane]').forEach(b=>b.onclick=()=>select({type:'lane',id:b.dataset.lane}));
+  svg.addEventListener('pointerdown',e=>{
+    const t=e.target.closest('[data-id]'),pt=svgPt(e);
+    svg.setPointerCapture(e.pointerId);
+    if(t){
+      const id=t.dataset.id,ty=t.dataset.t;
+      if(ty!=='string'&&(e.pointerType==='pen'||mode==='string'))drag={type:'string',from:id,x:pt.x,y:pt.y,sx:pt.x,sy:pt.y,moved:false};
+      else if(ty==='string')drag={type:'tap',id,ty,sx:pt.x,sy:pt.y,moved:false};
+      else{const p=pos(id);drag={type:'move',id,ty,ox:pt.x-p.x,oy:pt.y-p.y,sx:pt.x,sy:pt.y,moved:false}}
+    }else drag={type:'pan',cx:e.clientX,cy:e.clientY,sl:scroller.scrollLeft,st:scroller.scrollTop,sx:pt.x,sy:pt.y,moved:false};
+  });
+  svg.addEventListener('pointermove',e=>{
+    if(!drag)return;const pt=svgPt(e);
+    if(!drag.moved&&Math.hypot(pt.x-drag.sx,pt.y-drag.sy)<6)return;drag.moved=true;
+    if(drag.type==='pan'){scroller.scrollLeft=drag.sl-(e.clientX-drag.cx);scroller.scrollTop=drag.st-(e.clientY-drag.cy)}
+    else if(drag.type==='move'){
+      const nx=pt.x-drag.ox,ny=pt.y-drag.oy;
+      if(drag.ty==='knot'){const k=knot(drag.id);k.x=T(nx);k.y=clamp(ny,KB0+20,KB1-24)}
+      else{const p=pin(drag.id);p.x=T(nx);const i=clamp(Math.floor((pt.y-LY)/LH),0,state.lanes.length-1);if(pt.y>LY)p.lane=state.lanes[i].id}
+      renderBoard();
+    }else if(drag.type==='string'){drag.x=pt.x;drag.y=pt.y;renderBoard()}
+  });
+  const end=e=>{
+    if(!drag)return;const d=drag;drag=null;const pt=svgPt(e);
+    if(!d.moved){
+      if(d.type==='pan'){
+        const now=Date.now();
+        if(now-lastTap.t<350&&Math.hypot(pt.x-lastTap.x,pt.y-lastTap.y)<24){addAt(pt);lastTap.t=0;return}
+        lastTap={t:now,x:pt.x,y:pt.y};select(null);return;
+      }
+      select({type:d.ty||(knot(d.from)?'knot':'pin'),id:d.id||d.from});return;
+    }
+    if(d.type==='move'){commit();return}
+    if(d.type==='string'){
+      const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-id]');
+      let to=null;
+      if(t&&t.dataset.t!=='string')to=t.dataset.id;
+      else if(pt.y>=KB0&&pt.y<=KB1){const k={id:uid('k'),title:'',size:'minor',x:T(pt.x),y:clamp(pt.y,KB0+20,KB1-24),note:''};state.knots.push(k);to=k.id}
+      else if(pt.y>LY&&pt.y<LY+state.lanes.length*LH){const i=Math.floor((pt.y-LY)/LH),p={id:uid('p'),lane:state.lanes[i].id,x:T(pt.x),title:'',change:'shift',weight:2};state.pins.push(p);to=p.id}
+      if(to&&to!==d.from&&!state.strings.some(s=>s.from===d.from&&s.to===to)){
+        state.strings.push({id:uid('s'),from:d.from,to,label:''});
+        commit();select({type:knot(to)?'knot':'pin',id:to},true);return;
+      }
+      renderBoard();
+    }
+  };
+  svg.addEventListener('pointerup',end);
+  svg.addEventListener('pointercancel',()=>{drag=null;renderBoard()});
+}
+function addAt(pt){
+  if(pt.y>=KB0&&pt.y<=KB1){const k={id:uid('k'),title:'',size:'minor',x:T(pt.x),y:clamp(pt.y,KB0+20,KB1-24),note:''};state.knots.push(k);commit();select({type:'knot',id:k.id},true)}
+  else if(pt.y>LY&&pt.y<LY+state.lanes.length*LH){const i=Math.floor((pt.y-LY)/LH),p={id:uid('p'),lane:state.lanes[i].id,x:T(pt.x),title:'',change:'shift',weight:2};state.pins.push(p);commit();select({type:'pin',id:p.id},true)}
+}
+
+/* ---------- inspector ---------- */
+const pane=$('#pane');
+function select(s,focus){sel=s;tab='insp';renderBoard();renderSide();if(focus){const i=pane.querySelector('input[type=text]');if(i)i.focus()}}
+function commit(){save();renderBoard()}
+function seg(name,opts,val){return `<div class="seg wide" role="group">${opts.map(([v,t])=>`<button data-seg="${name}" data-v="${v}" aria-pressed="${String(val)===String(v)}">${t}</button>`).join('')}</div>`}
+let armed=null;
+function delBtn(label){return `<button class="btn danger" id="del">${label}</button>`}
+
+function renderSide(){
+  $('#t-insp').setAttribute('aria-selected',tab==='insp');$('#t-flags').setAttribute('aria-selected',tab==='flags');
+  if(tab==='flags')return renderFlags();
+  let h='';
+  if(!sel){
+    h=`<div class="eyebrow">How it works</div><h2>Tie a knot, pull a string</h2><div class="help">
+      <p><b>Pencil always draws strings.</b> Drag from a knot or pin to another one, onto a character's thread (makes a new pin there), or into the knot band (makes a new knot it spawns).</p>
+      <p><b>Finger moves</b> knots and pins and pans the board. Flip the toolbar to <kbd>String</kbd> if you're on a mouse.</p>
+      <p><b>Double-tap</b> empty space to add a knot (top band) or a pin (on a thread).</p>
+      <p><b>Tap a knot</b> to see everyone it reaches, even three books later. <b>Tap a name</b> on the left to follow just that thread.</p>
+      <p>Dashed strings travel <i>through a person</i>: secondhand impacts. Dashed knots <i>untie</i> instead of happening.</p>
+      <p>Hatched stretches are where the stall check thinks someone has gone quiet. Tell it "on purpose" and it will shut up.</p></div>
+      ${state.example?`<div class="example">Loaded with what you told me about Saul, the crates, Simon, Maxwell and "never enough". Book 2 is deliberately empty, and Ari has nothing yet, so the stall check has something to complain about.</div>`:''}
+      <div class="chips"><button class="btn" id="addlane">+ Character or carrier</button></div>`;
+  }else if(sel.type==='knot'){
+    const k=knot(sel.id);if(!k){sel=null;return renderSide()}
+    const r=lanesReached(k.id);
+    h=`<div class="eyebrow">Knot · ${where(k.x)}</div>
+      <div class="field"><label for="f-title">Name</label><input type="text" id="f-title" value="${esc(k.title)}" placeholder="What happens?"></div>
+      <div class="field"><span class="lbl">Size</span>${seg('size',[['major','Major'],['minor','Minor']],k.size)}</div>
+      <label class="check"><input type="checkbox" id="f-unties" ${k.unties?'checked':''}> Unties: dissolves over time instead of happening at once</label>
+      <div class="field"><label for="f-note">Note</label><textarea id="f-note">${esc(k.note)}</textarea></div>
+      <div class="field"><span class="lbl">Reaches</span><div class="chips">${state.lanes.map(l=>`<span class="chip ${r.has(l.id)?'':(l.type==='character'?'miss':'')}"><span class="sw" style="background:${l.color}"></span>${esc(l.name)}${r.has(l.id)?'':' · no string'}</span>`).join('')}</div></div>
+      ${delBtn('Delete knot')}`;
+  }else if(sel.type==='pin'){
+    const p=pin(sel.id);if(!p){sel=null;return renderSide()}
+    const inc=state.strings.filter(s=>s.to===p.id),outg=state.strings.filter(s=>s.from===p.id);
+    h=`<div class="eyebrow">Impact · ${where(p.x)}</div>
+      <div class="field"><label for="f-lane">Character</label><select id="f-lane">${state.lanes.map(l=>`<option value="${l.id}" ${l.id===p.lane?'selected':''}>${esc(l.name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="f-title">What it does to them</label><input type="text" id="f-title" value="${esc(p.title)}" placeholder="e.g. Tells no one"></div>
+      <div class="field"><label for="f-stage">Stage</label><input type="text" id="f-stage" value="${esc(p.stage)}" placeholder="senses · identifies · bargains · speaks"></div>
+      <div class="field"><span class="lbl">Change</span>${seg('change',[['grow','↑ Grows'],['worse','↓ Worsens'],['shift','↝ Shifts'],['same','= Unchanged']],p.change)}</div>
+      <div class="field"><span class="lbl">How hard it lands</span>${seg('weight',[[1,'Grazes'],[2,'Lands'],[3,'Floors']],p.weight||2)}</div>
+      <label class="check"><input type="checkbox" id="f-quiet" ${p.quiet?'checked':''}> Quiet until the next pin is on purpose</label>
+      <div class="field"><label for="f-note">Note</label><textarea id="f-note">${esc(p.note)}</textarea></div>
+      <div class="field"><span class="lbl">Arrives via</span><div class="chips">${inc.length?inc.map(s=>`<button class="chip" data-sel="string:${s.id}">${esc(trunc(nodeName(s.from),40))}</button>`).join(''):'<span class="muted">Nothing yet. Draw a string into it.</span>'}</div></div>
+      ${outg.length?`<div class="field"><span class="lbl">Passes on to</span><div class="chips">${outg.map(s=>`<button class="chip" data-sel="string:${s.id}">${esc(trunc(nodeName(s.to),40))}</button>`).join('')}</div></div>`:''}
+      ${delBtn('Delete pin')}`;
+  }else if(sel.type==='lane'){
+    const l=lane(sel.id);if(!l){sel=null;return renderSide()}
+    const fl=flags().filter(f=>f.lane===l.id);
+    h=`<div class="eyebrow">Thread</div>
+      <div class="field"><label for="f-name">Name</label><input type="text" id="f-name" value="${esc(l.name)}"></div>
+      <div class="field"><label for="f-color">Thread colour</label><input type="color" id="f-color" value="${l.color}"></div>
+      <div class="field"><span class="lbl">Kind</span>${seg('ltype',[['character','Character'],['carrier','Carrier (office, family, firm)']],l.type)}</div>
+      <div class="field"><span class="lbl">Stall check</span>${fl.length?fl.map(f=>`<div class="flag"><span class="t">${esc(f.text)}</span></div>`).join(''):'<span class="muted">Nothing flagged on this thread.</span>'}</div>
+      ${delBtn('Delete thread')}`;
+  }else if(sel.type==='string'){
+    const s=state.strings.find(x=>x.id===sel.id);if(!s){sel=null;return renderSide()}
+    h=`<div class="eyebrow">String</div><h2>${esc(trunc(nodeName(s.from),50))} → ${esc(trunc(nodeName(s.to),50))}</h2>
+      <div class="field"><label for="f-label">How it travels</label><input type="text" id="f-label" value="${esc(s.label)}" placeholder="e.g. secondhand, through Bençe"></div>
+      <div class="chips"><button class="chip" data-sel="${knot(s.from)?'knot':'pin'}:${s.from}">Go to start</button><button class="chip" data-sel="${knot(s.to)?'knot':'pin'}:${s.to}">Go to end</button></div>
+      ${delBtn('Cut string')}`;
+  }
+  pane.innerHTML=h;bindSide();
+}
+function bindSide(){
+  pane.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>{const[t,id]=b.dataset.sel.split(':');select({type:t,id})});
+  const obj=sel&&(sel.type==='knot'?knot(sel.id):sel.type==='pin'?pin(sel.id):sel.type==='lane'?lane(sel.id):state.strings.find(x=>x.id===sel.id));
+  const bindIn=(id,key)=>{const el=pane.querySelector('#'+id);if(el&&obj)el.addEventListener('input',()=>{obj[key]=el.type==='checkbox'?el.checked:el.value;commit()})};
+  bindIn('f-title','title');bindIn('f-note','note');bindIn('f-stage','stage');bindIn('f-name','name');bindIn('f-color','color');bindIn('f-label','label');
+  bindIn('f-unties','unties');bindIn('f-quiet','quiet');
+  const ls=pane.querySelector('#f-lane');if(ls)ls.onchange=()=>{obj.lane=ls.value;commit()};
+  pane.querySelectorAll('[data-seg]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.seg,v=b.dataset.v;
+    if(k==='size')obj.size=v;if(k==='change')obj.change=v;if(k==='weight')obj.weight=+v;if(k==='ltype')obj.type=v;
+    commit();renderSide();
+  });
+  const del=pane.querySelector('#del');
+  if(del)del.onclick=()=>{
+    if(armed!==sel.id){armed=sel.id;del.textContent='Tap again to delete';setTimeout(()=>{if(armed===sel?.id){armed=null;renderSide()}},3000);return}
+    armed=null;const id=sel.id;
+    if(sel.type==='knot'||sel.type==='pin'){state.knots=state.knots.filter(k=>k.id!==id);state.pins=state.pins.filter(p=>p.id!==id);state.strings=state.strings.filter(s=>s.from!==id&&s.to!==id)}
+    if(sel.type==='lane'){const gone=state.pins.filter(p=>p.lane===id).map(p=>p.id);state.lanes=state.lanes.filter(l=>l.id!==id);state.pins=state.pins.filter(p=>p.lane!==id);state.strings=state.strings.filter(s=>!gone.includes(s.from)&&!gone.includes(s.to))}
+    if(sel.type==='string')state.strings=state.strings.filter(s=>s.id!==id);
+    sel=null;commit();renderSide();
+  };
+  const al=pane.querySelector('#addlane');
+  if(al)al.onclick=()=>{const palette=['#3f8fbf','#d0703a','#4f9a67','#b0629b','#bf9a1f','#7b6fd6','#c25a5a','#3a9e9e'];const l={id:uid('l'),name:'New thread',color:palette[state.lanes.length%palette.length],type:'character'};state.lanes.push(l);commit();select({type:'lane',id:l.id},true)};
+}
+function renderFlags(){
+  const fl=flags();
+  if(!fl.length){pane.innerHTML=`<div class="eyebrow">Stall check</div><h2>Everyone's moving</h2><p class="muted">No quiet stretches, no untouched characters, no one stuck. Suspicious, frankly.</p>${(state.silenced||[]).length?'<button class="btn" id="unsil">Bring back silenced flags</button>':''}`;bindUnsil();return}
+  const groups={};fl.forEach(f=>{(groups[f.lane]=groups[f.lane]||[]).push(f)});
+  let h=`<div class="eyebrow">Stall check</div><h2>${fl.length} thing${fl.length===1?'':'s'} to look at</h2><p class="muted" style="margin:0">Gaps longer than ${Math.round(GAP*100)}% of a book, major knots that never reach someone, and three unchanged moments in a row.</p>`;
+  for(const ln of state.lanes.map(l=>l.id))if(groups[ln]){const l=lane(ln);
+    h+=`<div class="flaggroup"><h3><span class="chip" style="padding:0;border:0;background:transparent"><span class="sw" style="background:${l.color};width:10px;height:10px"></span></span>${esc(l.name)}</h3>`;
+    groups[ln].forEach((f,i)=>h+=`<div class="flag"><span class="t">${esc(f.text)}</span><div class="row"><button class="btn" data-show="${esc(f.key)}">Show</button><button class="btn" data-sil="${esc(f.key)}">On purpose</button></div></div>`);
+    h+='</div>';
+  }
+  if((state.silenced||[]).length||state.pins.some(p=>p.quiet))h+='<button class="btn" id="unsil">Bring back silenced flags</button>';
+  pane.innerHTML=h;
+  pane.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const f=fl.find(x=>x.key===b.dataset.show);if(!f)return;
+    const target=f.knot?{type:'knot',id:f.knot}:f.pin?{type:'pin',id:f.pin}:{type:'lane',id:f.lane};
+    sel=target;renderBoard();const x=X(f.x0??knot(f.knot)?.x??0);scroller.scrollLeft=Math.max(0,x-120);tab='flags';renderSide()});
+  pane.querySelectorAll('[data-sil]').forEach(b=>b.onclick=()=>{const f=fl.find(x=>x.key===b.dataset.sil);if(f){silence(f);renderSide()}});
+  bindUnsil();
+}
+function bindUnsil(){const u=pane.querySelector('#unsil');if(u)u.onclick=()=>{state.silenced=[];state.pins.forEach(p=>delete p.quiet);commit();renderSide()}}
+
+/* ---------- export / import ---------- */
+function exportData(){
+  const lname=id=>lane(id)?.name;
+  return{
+    tool:'Knotenpunkt',version:1,exported:new Date().toISOString(),
+    instructionsForClaude:"This is Sharon's knot board for her trilogy. Knots are series-spanning plot points (major or minor; 'unties' means the knot dissolves over time rather than happening at once). Pins are what a knot does to one character at one point in the story; strings show how impact travels, including secondhand through other characters or through carriers (institutions such as Simon). Positions are given as book and percentage. Audit the web: who is never reached, where threads go quiet, where impacts leave someone unchanged, which secondhand chains could be exploited. Respect anything marked quietOnPurpose. Ask Socratic questions rather than delivering diagnoses, never propose or produce outlines, and offer Kladde-ready factual anchors instead.",
+    books:state.books,
+    threads:state.lanes.map(l=>({name:l.name,kind:l.type})),
+    knots:state.knots.slice().sort((a,b)=>a.x-b.x).map(k=>({id:k.id,title:k.title,size:k.size,unties:!!k.unties,at:where(k.x),note:k.note||'',reaches:[...lanesReached(k.id)].map(lname)})),
+    pins:state.pins.slice().sort((a,b)=>a.x-b.x).map(p=>({id:p.id,character:lname(p.lane),at:where(p.x),title:p.title,stage:p.stage||'',change:p.change,weight:['','grazes','lands','floors'][p.weight||2],quietOnPurpose:!!p.quiet,note:p.note||''})),
+    strings:state.strings.map(s=>({from:nodeName(s.from),to:nodeName(s.to),fromId:s.from,toId:s.to,label:s.label||''})),
+    stallFlags:flags().map(f=>f.text),
+    _board:state
+  };
+}
+function openIO(){
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="card" role="dialog" aria-label="Export and import"><div class="eyebrow">Export · Import</div><h2 style="font-family:var(--display);margin:0">Hand the board to Claude</h2>
+    <p class="muted" style="margin:0">Copy this and paste it into a chat. It carries a briefing, so the Claude on the other end knows what knots and strings are. To restore a board, paste an export here and import it.</p>
+    <textarea id="io-text" spellcheck="false">${esc(JSON.stringify(exportData(),null,2))}</textarea>
+    <div class="chips"><button class="btn primary" id="io-copy">Copy for Claude</button><button class="btn" id="io-imp">Import from text</button><label class="btn" for="io-file">Import file…</label><input type="file" id="io-file" accept=".json,application/json" hidden><button class="btn danger" id="io-reset">Reset to example</button><button class="btn" id="io-close" style="margin-left:auto">Close</button></div></div>`;
+  document.body.appendChild(m);
+  const ta=m.querySelector('#io-text'),close=()=>m.remove();
+  m.querySelector('#io-close').onclick=close;m.onclick=e=>{if(e.target===m)close()};
+  m.querySelector('#io-copy').onclick=()=>{navigator.clipboard.writeText(ta.value).then(()=>toast('Copied. Paste it into a chat.')).catch(()=>{ta.focus();ta.select();toast('Selected. Copy it with ⌘C.')})};
+  const load=txt=>{try{const d=JSON.parse(txt),b=d._board||d;if(!Array.isArray(b.lanes)||!Array.isArray(b.knots))throw 0;state=b;state.example=false;sel=null;commit();renderSide();close();toast('Board imported.')}catch(e){toast("That isn't a Knotenpunkt export.")}};
+  m.querySelector('#io-imp').onclick=()=>load(ta.value);
+  m.querySelector('#io-file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>load(r.result);r.readAsText(f)};
+  const rs=m.querySelector('#io-reset');rs.onclick=()=>{if(rs.dataset.arm){state=sample();sel=null;commit();renderSide();close();toast('Example restored.')}else{rs.dataset.arm=1;rs.textContent='Tap again: this replaces your board'}};
+}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+
+/* ---------- toolbar ---------- */
+const setMode=m=>{mode=m;$('#m-move').setAttribute('aria-pressed',m==='move');$('#m-string').setAttribute('aria-pressed',m==='string')};
+$('#m-move').onclick=()=>setMode('move');$('#m-string').onclick=()=>setMode('string');
+const setView=v=>{view=v;$('#v-board').setAttribute('aria-pressed',v==='board');$('#v-grid').setAttribute('aria-pressed',v==='grid');renderBoard()};
+$('#v-board').onclick=()=>setView('board');$('#v-grid').onclick=()=>setView('grid');
+$('#lens').onclick=()=>{lensOn=!lensOn;$('#lens').textContent=lensOn?'Lens on':'Lens off';$('#lens').setAttribute('aria-pressed',lensOn);renderBoard()};
+$('#zin').onclick=()=>{zoom=Math.min(2.4,zoom*1.2);renderBoard()};
+$('#zout').onclick=()=>{zoom=Math.max(.5,zoom/1.2);renderBoard()};
+$('#add-knot').onclick=()=>{if(view!=='board')setView('board');const t=T(scroller.scrollLeft+scroller.clientWidth/2-104);const k={id:uid('k'),title:'',size:'major',x:t,y:110,note:''};state.knots.push(k);commit();select({type:'knot',id:k.id},true)};
+$('#stallbtn').onclick=()=>{tab='flags';renderSide()};
+$('#t-insp').onclick=()=>{tab='insp';renderSide()};$('#t-flags').onclick=()=>{tab='flags';renderSide()};
+$('#iobtn').onclick=openIO;
+document.addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea,select'))return;
+  if(e.key==='Escape'){select(null)}
+  if((e.key==='Delete'||e.key==='Backspace')&&sel){const d=pane.querySelector('#del');if(d){d.click();d.click()}}
+});
+
+renderBoard();renderSide();
+})();
+</script>
+
+</body></html>
